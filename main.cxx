@@ -9,14 +9,11 @@ static long t_base;
 
 struct PointState
 {
-	int map;
 	bool flip;
 	Eigen::Vector2d pos;
 	Eigen::Vector2d vel;
 
 	virtual void stepState(double dt);
-	virtual void flipX();
-	virtual void flipY();
 };
 
 struct BodyState: PointState
@@ -25,92 +22,25 @@ struct BodyState: PointState
 	double rvel;
 
 	void stepState(double dt) override;
-	void flipX() override;
-	void flipY() override;
-};
-
-struct MapTransferDescription
-{
-	int target;
-	bool flip;
-};
-
-static bool const NONORIENTABLE = true;
-static bool const PROJECTIVE_PLANE = false;
-
-MapTransferDescription mtd_xp[] = {
-	[0] = { .target = 2, .flip = false },
-	[1] = { .target = 3, .flip = false },
-	[2] = { .target = 0, .flip = PROJECTIVE_PLANE },
-	[3] = { .target = 1, .flip = PROJECTIVE_PLANE },
-};
-
-MapTransferDescription mtd_xn[] = {
-	[0] = { .target = 2, .flip = PROJECTIVE_PLANE },
-	[1] = { .target = 3, .flip = PROJECTIVE_PLANE },
-	[2] = { .target = 0, .flip = false },
-	[3] = { .target = 1, .flip = false },
-};
-
-MapTransferDescription mtd_yp[] = {
-	[0] = { .target = 1, .flip = NONORIENTABLE },
-	[1] = { .target = 0, .flip = false },
-	[2] = { .target = 3, .flip = NONORIENTABLE },
-	[3] = { .target = 2, .flip = false },
-};
-
-MapTransferDescription mtd_yn[] = {
-	[0] = { .target = 1, .flip = false },
-	[1] = { .target = 0, .flip = NONORIENTABLE },
-	[2] = { .target = 3, .flip = false },
-	[3] = { .target = 2, .flip = NONORIENTABLE },
 };
 
 void PointState::stepState(double dt)
 {
 	pos += dt * vel;
 	if(pos[0] >= 50.0)
-	{
-		pos[0] -= 50;
-		if(mtd_xp[map].flip)
-			flipY();
-		map = mtd_xp[map].target;
-	}
+		pos[0] -= 100.0;
 	if(pos[0] <= -50.0)
-	{
-		pos[0] += 50;
-		if(mtd_xn[map].flip)
-			flipY();
-		map = mtd_xn[map].target;
-	}
+		pos[0] += 100.0;
 	if(pos[1] >= 50.0)
 	{
-		pos[1] -= 50;
-		if(mtd_yp[map].flip)
-			flipX();
-		map = mtd_yp[map].target;
+		pos[1] -= 100.0;
+		flip = !flip;
 	}
 	if(pos[1] <= -50.0)
 	{
-		pos[1] += 50;
-		if(mtd_yn[map].flip)
-			flipX();
-		map = mtd_yn[map].target;
+		pos[1] += 100.0;
+		flip = !flip;
 	}
-}
-
-void PointState::flipX()
-{
-	pos[0] = -pos[0];
-	vel[0] = -vel[0];
-	flip = !flip;
-}
-
-void PointState::flipY()
-{
-	pos[1] = -pos[1];
-	vel[1] = -vel[1];
-	flip = !flip;
 }
 
 void BodyState::stepState(double dt)
@@ -119,24 +49,9 @@ void BodyState::stepState(double dt)
 	rpos += dt * rvel;
 }
 
-void BodyState::flipX()
-{
-	PointState::flipX();
-	rpos = -rpos;
-	rvel = -rvel;
-}
-
-void BodyState::flipY()
-{
-	PointState::flipY();
-	rpos = -rpos;
-	rvel = -rvel;
-}
-
 BodyState example;
 void init()
 {
-	example.map = 0;
 	example.flip = false;
 	example.pos = { 0.0, 0.0 };
 	example.vel = { 15.0, 20.0 };
@@ -168,41 +83,12 @@ void step()
 
 	glPointSize(12.0);
 	glPushMatrix();
-	Eigen::Vector2d pos = example.pos;
-	switch(example.map)
-	{
-		case 0:
-			break;
-		case 1:
-			pos[1] -= 50.0;
-			break;
-		case 2:
-			pos[0] -= 50.0;
-			break;
-		case 3:
-			pos[0] -= 50.0;
-			pos[1] -= 50.0;
-			break;
-	}
-	if(pos[0] <= -50.0)
-	{
-		if(PROJECTIVE_PLANE)
-			glScaled(1.0, -1.0, 1.0);
-		pos[0] += 100.0;
-	}
-	if(pos[1] <= -50.0)
-	{
-		if(NONORIENTABLE)
-			glScaled(-1.0, 1.0, 1.0);
-		pos[1] += 100.0;
-	}
-	glTranslated(pos[0], pos[1], 0.0);
-	glRotatef(180.0 / M_PI * example.rpos, 0.0, 0.0, 1.0);
+	glTranslated(example.pos[0], example.pos[1], 0.0);
 	if(example.flip)
 		glScaled(-1.0, 1.0, 1.0);
+	glRotatef(180.0 / M_PI * example.rpos, 0.0, 0.0, 1.0);
 	glColor4f(0.0, 1.0, 0.0, 1.0);
 	glBegin(GL_LINES);
-// 	glVertex2dv(example.pos.data());
 	glVertex2d(-10.0, 0.0);
 	glVertex2d(10.0, 0.0);
 	glVertex2d(3.0, 0.0);

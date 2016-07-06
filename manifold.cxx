@@ -35,3 +35,35 @@ void SquareKleinBottle::remap(BodyState const &base, BodyState &state)
 	if(std::abs(state.pos[0] - base.pos[0]) > radius)
 		shift_x(state, state.pos[0] < base.pos[0] ? +1 : -1);
 }
+
+void SquareKleinBottle::relativize(BodyState const &base, BodyState &state)
+{
+	remap(base, state);
+	double c = std::cos(base.rpos);
+	double s = std::sin(base.rpos);
+	Eigen::Matrix2d rot;
+	Eigen::Matrix2d rot2;
+	state.mirror ^= base.mirror;
+
+	state.pos -= base.pos;
+	state.vel -= base.vel;
+	state.rpos -= base.rpos;
+	state.rvel -= base.rvel;
+
+	if(base.mirror)
+	{
+		rot << -c, s, s, c;
+	}
+	else
+	{
+		rot << c, s, -s, c;
+	}
+
+	state.pos = rot * state.pos;
+	state.vel = rot * state.vel;
+	if(state.mirror)
+	{
+		state.rpos = -state.rpos;
+		state.rvel = -state.rvel;
+	}
+}

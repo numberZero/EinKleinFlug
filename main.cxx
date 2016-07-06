@@ -49,9 +49,41 @@ void step()
 
 	glClearColor(0.0, 0.0, 0.2, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
+	glRotatef(90.0, 0.0, 0.0, 1.0);
 
 	BodyState me = bodies.front();
-	glRotatef(90.0 - 180.0 / M_PI * me.rpos, 0.0, 0.0, 1.0);
+	for(BodyState &state0: bodies)
+	{
+		glPushMatrix();
+		BodyState state = state0;
+		m2.relativize(me, state);
+		glTranslated(state.pos[0], state.pos[1], 0.0);
+		glColor4f(0.0, 1.0, 1.0, 0.5);
+		glBegin(GL_LINES);
+		glVertex2d(0.0, 0.0);
+		glVertex2dv(state.vel.data());
+		glEnd();
+		if(state.mirror)
+			glScaled(-1.0, 1.0, 1.0);
+		glRotatef(180.0 / M_PI * state.rpos, 0.0, 0.0, 1.0);
+
+		glColor4f(1.0, 1.0, 1.0, 0.3);
+		glBegin(GL_LINES);
+		glVertex2d(-4.0, 0.0);
+		glVertex2d(4.0, 0.0);
+		glVertex2d(1.0, 0.0);
+		glVertex2d(0.0, 2.0);
+		glVertex2d(1.0, 0.0);
+		glVertex2d(0.0, -2.0);
+		glVertex2d(0.0, 0.0);
+		glVertex2d(-1.0, -2.0);
+		glEnd();
+
+		glPopMatrix();
+
+	}
+
+	glRotatef(-180.0 / M_PI * me.rpos, 0.0, 0.0, 1.0);
 	glColor4f(1.0, 1.0, 1.0, 0.3);
 	glBegin(GL_LINE_LOOP);
 	glVertex2d(-m2.radius, -m2.radius);

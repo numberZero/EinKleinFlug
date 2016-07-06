@@ -11,6 +11,11 @@ struct Body: BodyState
 	double radius;
 	double mass;
 	double rinertia;
+	bool alive = true;
+
+	virtual void destroy();
+	virtual void die();
+	virtual void collided(Body *with, Eigen::Vector2d momentum);
 };
 
 struct World
@@ -23,5 +28,6 @@ struct World
 
 	void prepare(double step);
 	void collide();
+	void gc();
 	void move();
 };

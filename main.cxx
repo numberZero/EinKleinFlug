@@ -18,12 +18,12 @@ std::list<Body> they;
 void init()
 {
 	static std::ranlux24 gen(std::time(nullptr));
-	static std::uniform_real_distribution<double> pos{-50.0, 50.0};
+	static std::uniform_real_distribution<double> pos(-50.0, 50.0);
 	me.mirror = false;
 	me.pos = { 0.0, 0.0 };
 	me.vel = { 3.0, 5.0 };
 	me.rpos = 0.0;
-	me.rvel = 0.0;
+	me.rvel = 0.1;
 	me.radius = 4.0;
 	me.mass = 5000.0;
 	me.rinertia = 5000.0;
@@ -55,6 +55,7 @@ void step()
 
 	world.prepare(dt);
 	world.collide();
+	world.gc();
 	world.move();
 
 	glClearColor(0.0, 0.0, 0.2, 1.0);

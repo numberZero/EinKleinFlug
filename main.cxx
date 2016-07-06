@@ -1,104 +1,140 @@
+#include <ctime>
 #include <iostream>
+#include <list>
+#include <random>
 #include <Eigen/Core>
 #include <GL/gl.h>
 #include <SDL.h>
+#include "manifold.hxx"
 
 SDL_Window *window;
 static SDL_GLContext context;
 static long t_base;
 
-struct PointState
-{
-	bool flip;
-	Eigen::Vector2d pos;
-	Eigen::Vector2d vel;
+SquareKleinBottle m2{50.0};
 
-	virtual void stepState(double dt);
-};
+std::list<BodyState> bodies;
 
-struct BodyState: PointState
-{
-	double rpos;
-	double rvel;
-
-	void stepState(double dt) override;
-};
-
-void PointState::stepState(double dt)
-{
-	pos += dt * vel;
-	if(pos[0] >= 50.0)
-		pos[0] -= 100.0;
-	if(pos[0] <= -50.0)
-		pos[0] += 100.0;
-	if(pos[1] >= 50.0)
-	{
-		pos[1] -= 100.0;
-		flip = !flip;
-	}
-	if(pos[1] <= -50.0)
-	{
-		pos[1] += 100.0;
-		flip = !flip;
-	}
-}
-
-void BodyState::stepState(double dt)
-{
-	PointState::stepState(dt);
-	rpos += dt * rvel;
-}
-
-BodyState example;
 void init()
 {
-	example.flip = false;
-	example.pos = { 0.0, 0.0 };
-	example.vel = { 15.0, 20.0 };
-	example.rpos = 0.0;
-	example.rvel = 1.0;
+	static std::ranlux24 gen(std::time(nullptr));
+	static std::uniform_real_distribution<double> pos{-50.0, 50.0};
+	BodyState body;
+	body.mirror = false;
+	body.pos = { 0.0, 0.0 };
+	body.vel = { 3.0, 5.0 };
+	body.rpos = 0.0;
+	body.rvel = 0.1;
+	bodies.push_back(body);
+	for(int k = 0; k != 12; ++k)
+	{
+		body.mirror = false;
+		body.pos = { pos(gen), pos(gen) };
+		body.vel = { 0.0, 0.0 };
+		body.rpos = 0.0;
+		body.rvel = 0.0;
+		bodies.push_back(body);
+	}
 }
 
 void step()
 {
+	static double const scale = 150.0 / m2.radius;
 	long const t_now = SDL_GetTicks();
 	double const dt = 0.001 * (t_now - t_base);
 	t_base = t_now;
 
-	example.stepState(dt);
+	for(BodyState &state: bodies)
+		m2.stepState(state, dt);
 
 	glClearColor(0.0, 0.0, 0.2, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	glLoadIdentity();
 
-	glScalef(5.0, 5.0, 5.0);
+	BodyState me = bodies.front();
+	glRotatef(90.0 - 180.0 / M_PI * me.rpos, 0.0, 0.0, 1.0);
+	glColor4f(1.0, 1.0, 1.0, 0.3);
+	glBegin(GL_LINE_LOOP);
+	glVertex2d(-m2.radius, -m2.radius);
+	glVertex2d(m2.radius, -m2.radius);
+	glVertex2d(m2.radius, m2.radius);
+	glVertex2d(-m2.radius, m2.radius);
+	glEnd();
+	if(me.mirror)
+		glScaled(-1.0, 1.0, 1.0);
+	glTranslated(-me.pos[0], -me.pos[1], 0.0);
+	glColor4f(0.0, 1.0, 0.0, 1.0);
+	for(BodyState &state0: bodies)
+	{
+		glPushMatrix();
+		BodyState state = state0;
+		m2.remap(me, state);
+		glTranslated(state.pos[0], state.pos[1], 0.0);
+		if(state.mirror)
+			glScaled(-1.0, 1.0, 1.0);
+		glRotatef(180.0 / M_PI * state.rpos, 0.0, 0.0, 1.0);
+
+		glBegin(GL_LINES);
+		glVertex2d(-4.0, 0.0);
+		glVertex2d(4.0, 0.0);
+		glVertex2d(1.0, 0.0);
+		glVertex2d(0.0, 2.0);
+		glVertex2d(1.0, 0.0);
+		glVertex2d(0.0, -2.0);
+		glVertex2d(0.0, 0.0);
+		glVertex2d(-1.0, -2.0);
+		glEnd();
+		glPopMatrix();
+
+		glColor4f(1.0, 1.0, 0.0, 1.0);
+	}
+
+	glLoadIdentity();
+	glTranslated(-200.0, 0.0, 0.0);
+	glScalef(scale, scale, scale);
 
 	glColor4f(1.0, 1.0, 1.0, 0.5);
 	glBegin(GL_LINE_LOOP);
-	glVertex2d(-50.0, -50.0);
-	glVertex2d(50.0, -50.0);
-	glVertex2d(50.0, 50.0);
-	glVertex2d(-50.0, 50.0);
+	glVertex2d(-m2.radius, -m2.radius);
+	glVertex2d(m2.radius, -m2.radius);
+	glVertex2d(m2.radius, m2.radius);
+	glVertex2d(-m2.radius, m2.radius);
 	glEnd();
 
-	glPointSize(12.0);
-	glPushMatrix();
-	glTranslated(example.pos[0], example.pos[1], 0.0);
-	if(example.flip)
-		glScaled(-1.0, 1.0, 1.0);
-	glRotatef(180.0 / M_PI * example.rpos, 0.0, 0.0, 1.0);
 	glColor4f(0.0, 1.0, 0.0, 1.0);
-	glBegin(GL_LINES);
-	glVertex2d(-10.0, 0.0);
-	glVertex2d(10.0, 0.0);
-	glVertex2d(3.0, 0.0);
-	glVertex2d(0.0, 5.0);
-	glVertex2d(3.0, 0.0);
-	glVertex2d(0.0, -5.0);
-	glVertex2d(1.0, 0.0);
-	glVertex2d(-2.0, -5.0);
+	for(BodyState &state: bodies)
+	{
+		glPushMatrix();
+		glTranslated(state.pos[0], state.pos[1], 0.0);
+		if(state.mirror)
+			glScaled(-1.0, 1.0, 1.0);
+		glRotatef(180.0 / M_PI * state.rpos, 0.0, 0.0, 1.0);
+
+		glBegin(GL_LINES);
+		glVertex2d(-4.0, 0.0);
+		glVertex2d(4.0, 0.0);
+		glVertex2d(1.0, 0.0);
+		glVertex2d(0.0, 2.0);
+		glVertex2d(1.0, 0.0);
+		glVertex2d(0.0, -2.0);
+		glVertex2d(0.0, 0.0);
+		glVertex2d(-1.0, -2.0);
+		glEnd();
+		glPopMatrix();
+
+		glColor4f(1.0, 1.0, 0.0, 1.0);
+	}
+
+	glLoadIdentity();
+	glTranslated(200.0, 0.0, 0.0);
+	glScalef(scale, scale, scale);
+
+	glColor4f(1.0, 1.0, 1.0, 0.5);
+	glBegin(GL_LINE_LOOP);
+	glVertex2d(-m2.radius, -m2.radius);
+	glVertex2d(m2.radius, -m2.radius);
+	glVertex2d(m2.radius, m2.radius);
+	glVertex2d(-m2.radius, m2.radius);
 	glEnd();
-	glPopMatrix();
 
 	glFlush();
 	glFinish();

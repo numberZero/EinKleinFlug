@@ -5,44 +5,40 @@
 #include <Eigen/Core>
 #include <GL/gl.h>
 #include <SDL.h>
-#include "phys.hxx"
+#include "obj.hxx"
 
 SDL_Window *window;
 static SDL_GLContext context;
 static long t_base;
 
-World world;
-Body me;
-std::list<Body> they;
+GameWorld world;
+GameObject *me;
 
 void init()
 {
 	static std::ranlux24 gen(std::time(nullptr));
 	static std::uniform_real_distribution<double> pos(-50.0, 50.0);
-	me.mirror = false;
-	me.pos = { 0.0, 0.0 };
-	me.vel = { 3.0, 5.0 };
-	me.rpos = 0.0;
-	me.rvel = 0.1;
-	me.radius = 4.0;
-	me.mass = 5000.0;
-	me.rinertia = 5000.0;
+	me = new GameObject(&world);
+	me->mirror = false;
+	me->pos = { 0.0, 0.0 };
+	me->vel = { 3.0, 5.0 };
+	me->rpos = 0.0;
+	me->rvel = 0.1;
+	me->radius = 4.0;
+	me->mass = 5000.0;
+	me->rinertia = 5000.0;
 	for(int k = 0; k != 24; ++k)
 	{
-		Body body;
-		body.mirror = false;
-		body.pos = { pos(gen), pos(gen) };
-		body.vel = { 0.0, 0.0 };
-		body.rpos = 0.0;
-		body.rvel = 0.0;
-		body.radius = 4.0;
-		body.mass = 5000.0;
-		body.rinertia = 5000.0;
-		they.push_back(body);
+		GameObject *obj = new GameObject(&world);
+		obj->mirror = false;
+		obj->pos = { pos(gen), pos(gen) };
+		obj->vel = { 0.0, 0.0 };
+		obj->rpos = 0.0;
+		obj->rvel = 0.0;
+		obj->radius = 4.0;
+		obj->mass = 5000.0;
+		obj->rinertia = 5000.0;
 	}
-	world.bodies.push_back(&me);
-	for(Body &body: they)
-		world.bodies.push_back(&body);
 }
 
 void step()
@@ -58,7 +54,7 @@ void step()
 	world.gc();
 	world.move();
 
-	glClearColor(0.0, 0.0, 0.2, 1.0);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glLoadIdentity();
@@ -67,18 +63,33 @@ void step()
 
 // load absolute coordinate system
 	glPushMatrix();
-	glRotatef(90.0 - 180.0 / M_PI * me.rpos, 0.0, 0.0, 1.0);
 	glColor4f(1.0, 1.0, 1.0, 0.3);
-	if(me.mirror)
-		glScaled(-1.0, 1.0, 1.0);
-	glTranslated(-me.pos[0], -me.pos[1], 0.0);
 
-	for(Body *body: world.bodies)
+	for(GameObject *object: world.objects)
 	{
 		glPushMatrix();
-		BodyState state = *body;
-		world.manifold.remap(me, state);
+		BodyState state = *object;
+		world.manifold.relativize(*me, state);
 		glTranslated(state.pos[0], state.pos[1], 0.0);
+
+		double hpp = object->hp / object->max_hp;
+		glLineWidth(0.5);
+		glColor4f(2.0 * (1.0 - hpp), 2.0 * hpp, 0.0, 1.0);
+		glBegin(GL_QUADS);
+		glVertex2d(-3.0, -4.5);
+		glVertex2d(-3.0, -5.0);
+		glVertex2d(-3.0 + 6.0 * hpp, -5.0);
+		glVertex2d(-3.0 + 6.0 * hpp, -4.5);
+		glEnd();
+
+		glColor4f(0.0, 0.2, 0.0, 1.0);
+		glBegin(GL_LINE_LOOP);
+		glVertex2d(-3.0, -4.5);
+		glVertex2d(-3.0, -5.0);
+		glVertex2d(3.0, -5.0);
+		glVertex2d(3.0, -4.5);
+		glEnd();
+
 		if(state.mirror)
 			glScaled(-1.0, 1.0, 1.0);
 		glRotatef(180.0 / M_PI * state.rpos, 0.0, 0.0, 1.0);
@@ -86,14 +97,14 @@ void step()
 		glLineWidth(2.0);
 		glColor4f(1.0, 1.0, 0.0, 1.0);
 		glBegin(GL_LINES);
-		glVertex2d(-3.0, 0.0);
-		glVertex2d(3.0, 0.0);
-		glVertex2d(1.0, 0.0);
-		glVertex2d(0.0, 2.0);
-		glVertex2d(1.0, 0.0);
-		glVertex2d(0.0, -2.0);
+		glVertex2d(0.0, -3.0);
+		glVertex2d(0.0, 3.0);
+		glVertex2d(0.0, 1.0);
+		glVertex2d(2.0, 0.0);
+		glVertex2d(0.0, 1.0);
+		glVertex2d(-2.0, 0.0);
 		glVertex2d(0.0, 0.0);
-		glVertex2d(-1.0, -2.0);
+		glVertex2d(2.0, -1.0);
 		glEnd();
 
 		glLineWidth(3.0);
@@ -101,8 +112,9 @@ void step()
 		glBegin(GL_LINE_LOOP);
 		for(long k = 0; k != 32; ++k)
 		{
+			double r = object->radius;
 			double phi = M_PI / 16.0 * k;
-			glVertex2d(body->radius * std::cos(phi), body->radius * std::sin(phi));
+			glVertex2d(r * std::cos(phi), r * std::sin(phi));
 		}
 		glEnd();
 

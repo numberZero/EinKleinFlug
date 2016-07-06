@@ -8,6 +8,7 @@ struct Body: BodyState
 	Eigen::Vector2d force;
 	double rforce;
 
+	double radius;
 	double mass;
 	double rinertia;
 };
@@ -15,7 +16,7 @@ struct Body: BodyState
 struct World
 {
 	SquareKleinBottle manifold;
-	std::list<Body> bodies;
+	std::list<Body *> bodies;
 	double dt;
 
 	World(double size = 50.0);

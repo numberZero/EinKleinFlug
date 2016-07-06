@@ -5,109 +5,88 @@
 #include <Eigen/Core>
 #include <GL/gl.h>
 #include <SDL.h>
-#include "manifold.hxx"
+#include "phys.hxx"
 
 SDL_Window *window;
 static SDL_GLContext context;
 static long t_base;
 
-SquareKleinBottle m2{50.0};
-
-std::list<BodyState> bodies;
+World world;
+Body me;
+std::list<Body> they;
 
 void init()
 {
 	static std::ranlux24 gen(std::time(nullptr));
 	static std::uniform_real_distribution<double> pos{-50.0, 50.0};
-	BodyState body;
-	body.mirror = false;
-	body.pos = { 0.0, 0.0 };
-	body.vel = { 3.0, 5.0 };
-	body.rpos = 0.0;
-	body.rvel = 0.1;
-	bodies.push_back(body);
-	for(int k = 0; k != 12; ++k)
+	me.mirror = false;
+	me.pos = { 0.0, 0.0 };
+	me.vel = { 3.0, 5.0 };
+	me.rpos = 0.0;
+	me.rvel = 0.0;
+	me.radius = 4.0;
+	me.mass = 5000.0;
+	me.rinertia = 5000.0;
+	for(int k = 0; k != 24; ++k)
 	{
+		Body body;
 		body.mirror = false;
 		body.pos = { pos(gen), pos(gen) };
 		body.vel = { 0.0, 0.0 };
 		body.rpos = 0.0;
 		body.rvel = 0.0;
-		bodies.push_back(body);
+		body.radius = 4.0;
+		body.mass = 5000.0;
+		body.rinertia = 5000.0;
+		they.push_back(body);
 	}
+	world.bodies.push_back(&me);
+	for(Body &body: they)
+		world.bodies.push_back(&body);
 }
 
 void step()
 {
-	static double const scale = 150.0 / m2.radius;
+	static double const scale = 10.0;
 	long const t_now = SDL_GetTicks();
+	double const t = 0.001 * t_now;
 	double const dt = 0.001 * (t_now - t_base);
 	t_base = t_now;
 
-	for(BodyState &state: bodies)
-		m2.stepState(state, dt);
+	world.prepare(dt);
+	world.collide();
+	world.move();
 
 	glClearColor(0.0, 0.0, 0.2, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	glRotatef(90.0, 0.0, 0.0, 1.0);
 
-	BodyState me = bodies.front();
-	for(BodyState &state0: bodies)
-	{
-		glPushMatrix();
-		BodyState state = state0;
-		m2.relativize(me, state);
-		glTranslated(state.pos[0], state.pos[1], 0.0);
-		glColor4f(0.0, 1.0, 1.0, 0.5);
-		glBegin(GL_LINES);
-		glVertex2d(0.0, 0.0);
-		glVertex2dv(state.vel.data());
-		glEnd();
-		if(state.mirror)
-			glScaled(-1.0, 1.0, 1.0);
-		glRotatef(180.0 / M_PI * state.rpos, 0.0, 0.0, 1.0);
+	glLoadIdentity();
+	glScalef(scale, scale, scale);
+	glTranslated(0, -10.0, 0.0);
 
-		glColor4f(1.0, 1.0, 1.0, 0.3);
-		glBegin(GL_LINES);
-		glVertex2d(-4.0, 0.0);
-		glVertex2d(4.0, 0.0);
-		glVertex2d(1.0, 0.0);
-		glVertex2d(0.0, 2.0);
-		glVertex2d(1.0, 0.0);
-		glVertex2d(0.0, -2.0);
-		glVertex2d(0.0, 0.0);
-		glVertex2d(-1.0, -2.0);
-		glEnd();
-
-		glPopMatrix();
-
-	}
-
-	glRotatef(-180.0 / M_PI * me.rpos, 0.0, 0.0, 1.0);
+// load absolute coordinate system
+	glPushMatrix();
+	glRotatef(90.0 - 180.0 / M_PI * me.rpos, 0.0, 0.0, 1.0);
 	glColor4f(1.0, 1.0, 1.0, 0.3);
-	glBegin(GL_LINE_LOOP);
-	glVertex2d(-m2.radius, -m2.radius);
-	glVertex2d(m2.radius, -m2.radius);
-	glVertex2d(m2.radius, m2.radius);
-	glVertex2d(-m2.radius, m2.radius);
-	glEnd();
 	if(me.mirror)
 		glScaled(-1.0, 1.0, 1.0);
 	glTranslated(-me.pos[0], -me.pos[1], 0.0);
-	glColor4f(0.0, 1.0, 0.0, 1.0);
-	for(BodyState &state0: bodies)
+
+	for(Body *body: world.bodies)
 	{
 		glPushMatrix();
-		BodyState state = state0;
-		m2.remap(me, state);
+		BodyState state = *body;
+		world.manifold.remap(me, state);
 		glTranslated(state.pos[0], state.pos[1], 0.0);
 		if(state.mirror)
 			glScaled(-1.0, 1.0, 1.0);
 		glRotatef(180.0 / M_PI * state.rpos, 0.0, 0.0, 1.0);
 
+		glLineWidth(2.0);
+		glColor4f(1.0, 1.0, 0.0, 1.0);
 		glBegin(GL_LINES);
-		glVertex2d(-4.0, 0.0);
-		glVertex2d(4.0, 0.0);
+		glVertex2d(-3.0, 0.0);
+		glVertex2d(3.0, 0.0);
 		glVertex2d(1.0, 0.0);
 		glVertex2d(0.0, 2.0);
 		glVertex2d(1.0, 0.0);
@@ -115,57 +94,42 @@ void step()
 		glVertex2d(0.0, 0.0);
 		glVertex2d(-1.0, -2.0);
 		glEnd();
+
+		glLineWidth(3.0);
+		glColor4f(0.0, 1.0, 0.8 + 0.2 * std::sin(5.0 * t), 0.5);
+		glBegin(GL_LINE_LOOP);
+		for(long k = 0; k != 32; ++k)
+		{
+			double phi = M_PI / 16.0 * k;
+			glVertex2d(body->radius * std::cos(phi), body->radius * std::sin(phi));
+		}
+		glEnd();
+
 		glPopMatrix();
-
-		glColor4f(1.0, 1.0, 0.0, 1.0);
 	}
+	glPopMatrix(); // return to relative coordinate system
 
-	glLoadIdentity();
-	glTranslated(-200.0, 0.0, 0.0);
-	glScalef(scale, scale, scale);
-
-	glColor4f(1.0, 1.0, 1.0, 0.5);
-	glBegin(GL_LINE_LOOP);
-	glVertex2d(-m2.radius, -m2.radius);
-	glVertex2d(m2.radius, -m2.radius);
-	glVertex2d(m2.radius, m2.radius);
-	glVertex2d(-m2.radius, m2.radius);
+	glLineWidth(1.5);
+	glColor4f(0.0, 1.0, 0.0, 1.0);
+	glBegin(GL_LINE_STRIP);
+	glVertex2d(-5.0, -3.0);
+	glVertex2d(-5.0, -5.0);
+	glVertex2d(-3.0, -5.0);
 	glEnd();
-
-	glColor4f(0.0, 1.0, 0.0, 1.0);
-	for(BodyState &state: bodies)
-	{
-		glPushMatrix();
-		glTranslated(state.pos[0], state.pos[1], 0.0);
-		if(state.mirror)
-			glScaled(-1.0, 1.0, 1.0);
-		glRotatef(180.0 / M_PI * state.rpos, 0.0, 0.0, 1.0);
-
-		glBegin(GL_LINES);
-		glVertex2d(-4.0, 0.0);
-		glVertex2d(4.0, 0.0);
-		glVertex2d(1.0, 0.0);
-		glVertex2d(0.0, 2.0);
-		glVertex2d(1.0, 0.0);
-		glVertex2d(0.0, -2.0);
-		glVertex2d(0.0, 0.0);
-		glVertex2d(-1.0, -2.0);
-		glEnd();
-		glPopMatrix();
-
-		glColor4f(1.0, 1.0, 0.0, 1.0);
-	}
-
-	glLoadIdentity();
-	glTranslated(200.0, 0.0, 0.0);
-	glScalef(scale, scale, scale);
-
-	glColor4f(1.0, 1.0, 1.0, 0.5);
-	glBegin(GL_LINE_LOOP);
-	glVertex2d(-m2.radius, -m2.radius);
-	glVertex2d(m2.radius, -m2.radius);
-	glVertex2d(m2.radius, m2.radius);
-	glVertex2d(-m2.radius, m2.radius);
+	glBegin(GL_LINE_STRIP);
+	glVertex2d(5.0, -3.0);
+	glVertex2d(5.0, -5.0);
+	glVertex2d(3.0, -5.0);
+	glEnd();
+	glBegin(GL_LINE_STRIP);
+	glVertex2d(5.0, 3.0);
+	glVertex2d(5.0, 5.0);
+	glVertex2d(3.0, 5.0);
+	glEnd();
+	glBegin(GL_LINE_STRIP);
+	glVertex2d(-5.0, 3.0);
+	glVertex2d(-5.0, 5.0);
+	glVertex2d(-3.0, 5.0);
 	glEnd();
 
 	glFlush();

@@ -10,6 +10,7 @@ find_package(SDL2 REQUIRED)
 add_executable(einkleinflug
 	main.cxx
 	manifold.cxx
+	phys.cxx
 )
 target_include_directories(einkleinflug PUBLIC
  	${PROJECT_SOURCE_DIR}/

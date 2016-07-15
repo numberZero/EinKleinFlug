@@ -5,20 +5,21 @@
 #include <Eigen/Core>
 #include <GL/gl.h>
 #include <SDL.h>
-#include "obj.hxx"
+#include "ship.hxx"
+#include "world.hxx"
 
 SDL_Window *window;
 static SDL_GLContext context;
 static long t_base;
 
-GameWorld world;
-GameObject *me;
+World world;
+Ship *me;
 
 void init()
 {
 	static std::ranlux24 gen(std::time(nullptr));
 	static std::uniform_real_distribution<double> pos(-50.0, 50.0);
-	me = new GameObject(&world);
+	me = new Ship(&world);
 	me->mirror = false;
 	me->pos = { 0.0, 0.0 };
 	me->vel = { 3.0, 5.0 };
@@ -29,7 +30,7 @@ void init()
 	me->rinertia = 5000.0;
 	for(int k = 0; k != 24; ++k)
 	{
-		GameObject *obj = new GameObject(&world);
+		Ship *obj = new Ship(&world);
 		obj->mirror = false;
 		obj->pos = { pos(gen), pos(gen) };
 		obj->vel = { 0.0, 0.0 };
@@ -51,7 +52,6 @@ void step()
 
 	world.prepare(dt);
 	world.collide();
-	world.gc();
 	world.move();
 
 	glClearColor(0.0, 0.0, 0.0, 1.0);
@@ -65,7 +65,7 @@ void step()
 	glPushMatrix();
 	glColor4f(1.0, 1.0, 1.0, 0.3);
 
-	for(GameObject *object: world.objects)
+	for(Ship *object: world.ships)
 	{
 		glPushMatrix();
 		BodyState state = *object;

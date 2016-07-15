@@ -8,10 +8,11 @@ find_package(Eigen3 REQUIRED)
 find_package(SDL2 REQUIRED)
 
 add_executable(einkleinflug
+	body.cxx
 	main.cxx
 	manifold.cxx
-	obj.cxx
-	phys.cxx
+	ship.cxx
+	world.cxx
 )
 target_include_directories(einkleinflug PUBLIC
  	${PROJECT_SOURCE_DIR}/

@@ -6,6 +6,7 @@
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include <SDL.h>
+#include "particles.hxx"
 #include "ship.hxx"
 #include "text.hxx"
 #include "world.hxx"
@@ -16,6 +17,7 @@ static long t_base;
 
 World world(100.0);
 Ship *me;
+Explosion *e1;
 
 void init()
 {
@@ -33,6 +35,7 @@ void init()
 	me->radius = 4.0;
 	me->mass = 5000.0;
 	me->rinertia = 5000.0;
+	e1 = new Explosion(&world, *me, 200.0);
 	for(int k = 0; k != 24; ++k)
 	{
 		Ship *obj = new Ship(&world);
@@ -78,6 +81,8 @@ void step()
 	world.collide();
 	world.move();
 
+	e1->move(dt);
+
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -87,6 +92,10 @@ void step()
 
 	for(Ship *object: world.ships)
 		object->draw(me);
+
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	e1->draw(me);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glLineWidth(1.5);
 	glColor4f(0.0, 1.0, 0.0, 1.0);
@@ -127,6 +136,7 @@ void step()
 	glColor4f(0.0, 1.0, 0.0, 0.7);
 	vglTextOutF(-390.0, 280.0, 14.0, 1.0, "FPS: %.1f", fps);
 	vglTextOutF(-390.0, 260.0, 14.0, 1.0, "Ships: %d", world.ships.size());
+	vglTextOutF(-390.0, 240.0, 14.0, 1.0, "Particles: %d", e1->particles.size());
 
 	glFlush();
 	glFinish();

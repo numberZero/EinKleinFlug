@@ -36,26 +36,35 @@ void SquareKleinBottle::stepState(BodyState &state, double dt) const
 	state.rpos += dt * state.rvel;
 }
 
-void SquareKleinBottle::remap(BodyState const &base, BodyState &state) const
+bool SquareKleinBottle::remap_base(BodyState const &base, PointState &state) const
 {
+	bool f = false;
 	if(std::abs(state.pos[1] - base.pos[1]) > radius)
-		state.mirror ^= shift_y(state, state.pos[1] < base.pos[1] ? +1 : -1);
+		f ^= shift_y(state, state.pos[1] < base.pos[1] ? +1 : -1);
 	if(std::abs(state.pos[0] - base.pos[0]) > radius)
-		state.mirror ^= shift_x(state, state.pos[0] < base.pos[0] ? +1 : -1);
+		f ^= shift_x(state, state.pos[0] < base.pos[0] ? +1 : -1);
+	return f;
 }
 
-void SquareKleinBottle::relativize(BodyState const &base, BodyState &state) const
+void SquareKleinBottle::remap(BodyState const &base, PointState &state) const
+{
+	remap_base(base, state);
+}
+
+void SquareKleinBottle::remap(BodyState const &base, BodyState &state) const
+{
+	state.mirror ^= remap_base(base, state);
+}
+
+void SquareKleinBottle::relativize(BodyState const &base, PointState &state) const
 {
 	remap(base, state);
 	double c = std::cos(base.rpos);
 	double s = std::sin(base.rpos);
 	Eigen::Matrix2d rot;
-	state.mirror ^= base.mirror;
 
 	state.pos -= base.pos;
 	state.vel -= base.vel;
-	state.rpos -= base.rpos;
-	state.rvel -= base.rvel;
 
 	if(base.mirror)
 		rot << -c, s, s, c;
@@ -64,6 +73,14 @@ void SquareKleinBottle::relativize(BodyState const &base, BodyState &state) cons
 
 	state.pos = rot * state.pos;
 	state.vel = rot * state.vel;
+}
+
+void SquareKleinBottle::relativize(BodyState const &base, BodyState &state) const
+{
+	relativize(base, static_cast<PointState &>(state));
+	state.mirror ^= base.mirror;
+	state.rpos -= base.rpos;
+	state.rvel -= base.rvel;
 	if(state.mirror)
 	{
 		state.rpos = -state.rpos;

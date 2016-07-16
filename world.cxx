@@ -88,11 +88,11 @@ void World::move()
 
 void World::draw(Ship const *base)
 {
-	for(Ship *ship: ships)
-		ship->draw(base);
-
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	for(ParticleSystem *parts: particles)
 		parts->draw(base);
+
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	for(Ship *ship: ships)
+		ship->draw(base);
 }

@@ -15,13 +15,14 @@ struct ParticleSystem
 {
 	World *world;
 	std::list<Particle> particles;
+	double const particle_size;
 
-	ParticleSystem(World *world);
+	ParticleSystem(World *world, double particle_size);
 
-	bool viable() const;
+	virtual bool viable() const;
 	void die();
 
-	void move(double dt);
+	virtual void move(double dt);
 	void draw(BodyState const *base);
 
 	virtual void draw1(Particle const &p);
@@ -38,10 +39,19 @@ struct Explosion: ParticleSystem
 
 struct Jet: ParticleSystem
 {
+	double const full_thrust;
 	double const base_vel;
 	double const base_life;
+	double const pos_spread;
+	double const vel_spread;
+	double const size_fullpower;
+	double const particle_energy;
 	BodyState const &parent;
-	PointState const &shift;
-	Jet(World *world, BodyState const &parent, PointState const &shift);
+	PointState const shift;
+	double energy = 0.0;
+	double power;
+	Jet(World *world, BodyState const &parent, PointState const &shift, double full_thrust, double visual_scale);
+	bool viable() const override;
+	void move(double dt) override;
 	void colorize(Particle const &p) override;
 };

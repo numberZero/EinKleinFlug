@@ -32,6 +32,7 @@ struct Body:
 	BodyTemp,
 	BodyDesc
 {
+	Body(World *world);
 	World *world;
 	void prepare();
 	virtual void move();

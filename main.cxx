@@ -14,14 +14,23 @@
 SDL_Window *window;
 static SDL_GLContext context;
 static long t_base;
+std::uint8_t const *keys;
 
 World world(100.0);
 Ship *me;
+Jet *jets[4] = { nullptr, nullptr, nullptr, nullptr };
 
 static std::ranlux24 gen(std::time(nullptr));
 
 void respawn()
 {
+	for(int k = 0; k != 4; ++k)
+		if(jets[k])
+		{
+			jets[k]->die();
+			world.particles.erase(jets[k]);
+			delete jets[k];
+		}
 	me = new Ship(&world, 20.0, 20.0);
 	me->mirror = false;
 	me->pos = { 0.0, 0.0 };
@@ -31,6 +40,10 @@ void respawn()
 	me->radius = 4.0;
 	me->mass = 5000.0;
 	me->rinertia = 5000.0;
+	jets[0] = new Jet(&world, *me, {{-2.0, -1.7}, {0.0, -500.0}}, 7500.0, 0.05);
+	jets[1] = new Jet(&world, *me, {{+2.0, -1.7}, {0.0, -500.0}}, 7500.0, 0.05);
+	jets[2] = new Jet(&world, *me, {{-2.0, 1.7}, {0.0, 500.0}}, 7500.0, 0.05);
+	jets[3] = new Jet(&world, *me, {{+2.0, 1.7}, {0.0, 500.0}}, 7500.0, 0.05);
 }
 
 void init()
@@ -75,13 +88,25 @@ double advanceFrameRateCounter(double dt)
 void step()
 {
 	static double const scale = 10.0;
+	static double const rate_min = 30.0;
+	static double const dt_max = 1.0 / rate_min;
 	long const t_now = SDL_GetTicks();
 	double const t = 0.001 * t_now;
 	double const dt = 0.001 * (t_now - t_base);
 	double const fps = advanceFrameRateCounter(dt);
+	bool const slow = dt > dt_max;
 	t_base = t_now;
 
-	world.prepare(dt);
+	bool up = keys[SDL_SCANCODE_UP];
+	bool down = keys[SDL_SCANCODE_DOWN];
+	bool left = keys[SDL_SCANCODE_LEFT];
+	bool right = keys[SDL_SCANCODE_RIGHT];
+	jets[0]->power = up && !left || right && !down ? 1.0 : 0.0;
+	jets[1]->power = up && !right || left && !down ? 1.0 : 0.0;
+	jets[2]->power = down && !right || left && !up ? 1.0 : 0.0;
+	jets[3]->power = down && !left || right && !up ? 1.0 : 0.0;
+
+	world.prepare(slow ? dt_max : dt);
 	world.collide();
 	if(!me->viable())
 		respawn();
@@ -109,10 +134,26 @@ void step()
 	glEnd();
 
 	glLoadIdentity();
+	double x = -390.0;
+	double y = 300.0;
+	double dy = 20.0;
+	double w = 1.0;
+	double h = 14.0;
 	glColor4f(0.0, 1.0, 0.0, 0.7);
-	vglTextOutF(-390.0, 280.0, 14.0, 1.0, "FPS: %.1f", fps);
-	vglTextOutF(-390.0, 260.0, 14.0, 1.0, "Ships: %d", world.ships.size());
-	vglTextOutF(-390.0, 240.0, 14.0, 1.0, "Particle systems: %d", world.particles.size());
+	vglTextOutF(x, y -= dy, h, w, "FPS: %.1f", fps);
+	if(slow)
+	{
+		glColor4f(1.0, 0.0, 0.0, 0.7);
+		vglTextOutF(x, y -= dy, h, w, "Lag");
+	}
+	glColor4f(0.0, 1.0, 0.0, 0.7);
+	vglTextOutF(x, y -= dy, h, w, "Ships: %d", world.ships.size());
+	vglTextOutF(x, y -= dy, h, w, "Particle systems: %d", world.particles.size());
+	if(me->mirror)
+	{
+		glColor4f(1.0, 1.0, 0.0, 0.7);
+		vglTextOutF(x, y -= dy, h, w, "Mirrored");
+	}
 
 	glFlush();
 	glFinish();
@@ -142,6 +183,7 @@ void run()
 void initSDL()
 {
 	SDL_Init(SDL_INIT_EVERYTHING);
+	keys = SDL_GetKeyboardState(nullptr);
 	window = SDL_CreateWindow("Ein Klein Flug", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_OPENGL);
 	context = SDL_GL_CreateContext(window);
 	SDL_GL_MakeCurrent(window, context);

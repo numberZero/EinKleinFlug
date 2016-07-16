@@ -1,6 +1,11 @@
 #include "body.hxx"
 #include "world.hxx"
 
+Body::Body(World *world) :
+	world(world)
+{
+}
+
 void Body::prepare()
 {
 	force.setZero();

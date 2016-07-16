@@ -93,3 +93,21 @@ void SquareKleinBottle::relativize(BodyState const &base, BodyState &state) cons
 		state.rvel = -state.rvel;
 	}
 }
+
+void SquareKleinBottle::absolutize(BodyState const &base, PointState &state) const
+{
+	double c = std::cos(base.rpos);
+	double s = std::sin(base.rpos);
+	Eigen::Matrix2d rot;
+
+	if(base.mirror)
+		rot << -c, s, s, c; // gives correct result
+	else
+		rot << c, -s, s, c;
+
+	state.pos = rot * state.pos;
+	state.vel = rot * state.vel;
+
+	state.pos += base.pos;
+	state.vel += base.vel;
+}

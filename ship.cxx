@@ -5,11 +5,11 @@
 #include "world.hxx"
 
 Ship::Ship(World *world, double hp, double armor) :
+	Body(world),
 	max_hp(hp),
 	hp(hp),
 	armor(armor)
 {
-	this->world = world;
 	world->ships.insert(this);
 }
 
@@ -20,7 +20,7 @@ bool Ship::viable() const
 
 void Ship::die()
 {
-	world->particles.insert(new Explosion(world, *this, 200.0));
+	new Explosion(world, *this, 200.0);
 }
 
 void Ship::move()
@@ -83,6 +83,15 @@ void Ship::draw_model()
 	glVertex2d(3.0, 1.0);
 	glVertex2d(0.0, 0.0);
 	glVertex2d(0.0, -2.0);
+	glColor4f(0.3, 0.3, 0.3, 1.0);
+	glVertex2d(-2.3, -1.8);
+	glVertex2d(-2.3, 1.8);
+	glVertex2d(-1.7, 1.8);
+	glVertex2d(-1.7, -1.8);
+	glVertex2d(2.3, -1.8);
+	glVertex2d(2.3, 1.8);
+	glVertex2d(1.7, 1.8);
+	glVertex2d(1.7, -1.8);
 	glColor4f(0.0, 0.3, 0.0, 1.0);
 	glVertex2d(-0.6, -2.6);
 	glVertex2d(-0.6, 2.0);
@@ -95,6 +104,7 @@ void Ship::draw_model()
 	glEnd();
 
 	double const b = 0.8 + 0.2 * std::sin(5.0 * world->t);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	glBegin(GL_QUAD_STRIP);
 	for(long k = 0; k != q + 1; ++k)
 	{
@@ -107,4 +117,5 @@ void Ship::draw_model()
 		glVertex2d(r2 * std::cos(phi), r2 * std::sin(phi));
 	}
 	glEnd();
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }

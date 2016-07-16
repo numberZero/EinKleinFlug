@@ -31,4 +31,5 @@ public:
 	void remap(BodyState const &base, BodyState &state) const;
 	void relativize(BodyState const &base, PointState &state) const;
 	void relativize(BodyState const &base, BodyState &state) const;
+	void absolutize(BodyState const &base, PointState &state) const;
 };

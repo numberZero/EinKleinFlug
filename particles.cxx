@@ -4,9 +4,11 @@
 #include <GL/gl.h>
 #include "world.hxx"
 
-ParticleSystem::ParticleSystem(World *world) :
-	world(world)
+ParticleSystem::ParticleSystem(World *world, double particle_size) :
+	world(world),
+	particle_size(particle_size)
 {
+	world->particles.insert(this);
 }
 
 bool ParticleSystem::viable() const
@@ -69,7 +71,7 @@ void ParticleSystem::draw1(Particle const &p)
 	glColor4f(0.0, 0.0, 0.0, 1.0);
 	for(long k = 0; k != q; ++k)
 	{
-		double r = 2.0;
+		double r = particle_size;
 		double phi = dphi * k;
 		glVertex2d(r * std::cos(phi), r * std::sin(phi));
 		glVertex2d(r * std::cos(phi + dphi), r * std::sin(phi + dphi));
@@ -84,15 +86,15 @@ void ParticleSystem::colorize(Particle const &p)
 }
 
 Explosion::Explosion(World *world, PointState const &base, double power) :
-	ParticleSystem(world),
+	ParticleSystem(world, 2.0),
 	base_vel(2.5 * std::pow(power, 0.25)),
 	base_life(0.5 * std::log(power + 1.0) + 0.1)
 {
 	auto seed = std::time(nullptr);
-	static std::ranlux24 gen(seed);
+	std::ranlux24 gen(seed);
 	static std::uniform_real_distribution<double> phi(-M_PI, M_PI);
 	static std::uniform_real_distribution<double> rad(0.0, 1.0);
-	static std::uniform_real_distribution<double> vel(0.0, 2.0 * base_vel);
+	std::uniform_real_distribution<double> vel(0.0, 2.0 * base_vel);
 	static std::uniform_real_distribution<double> dlife(0.9, 1.1);
 	while(power > 0)
 	{
@@ -117,4 +119,59 @@ void Explosion::colorize(Particle const &p)
 	double v = p.value;
 	double w = std::pow(p.life / base_life, 3.0);
 	glColor4f(w, w * (3.0 * v - 1.0), w * (4.0 * v - 2.0), 1.0);
+}
+
+Jet::Jet(World *world, BodyState const &parent, PointState const &shift, double full_thrust, double visual_scale):
+	ParticleSystem(world, 0.5),
+	full_thrust(full_thrust),
+	base_vel(visual_scale * shift.vel.norm()),
+	base_life(0.4),
+	pos_spread(0.2),
+	vel_spread(0.2 * base_vel),
+	size_fullpower(150.0),
+	particle_energy(base_life / size_fullpower),
+	parent(parent),
+	shift{shift.pos, visual_scale * shift.vel}
+{
+}
+
+bool Jet::viable() const
+{
+	return true; // permanent PS
+}
+
+void Jet::move(double dt)
+{
+	static std::ranlux24 gen(std::time(nullptr));
+	static std::uniform_real_distribution<double> phi(-M_PI, M_PI);
+	std::uniform_real_distribution<double> dv(0.0, vel_spread);
+	std::uniform_real_distribution<double> dp(0.0, pos_spread);
+	static std::uniform_real_distribution<double> dlife(0.9, 1.1);
+	energy += power * dt;
+	while(energy > 0.0)
+	{
+		energy -= 0.001;
+		Particle p;
+		(PointState &)p = shift;
+		double a = phi(gen);
+		double r = dv(gen);
+		p.vel[0] += r * std::cos(a);
+		p.vel[1] += r * std::sin(a);
+		a = phi(gen);
+		r = dp(gen);
+		p.pos[0] += r * std::cos(a);
+		p.pos[1] += r * std::sin(a);
+		p.value = p.vel.dot(shift.vel) / (base_vel * base_vel);
+		p.life = dlife(gen) * base_life * p.value;
+		world->manifold.absolutize(parent, p);
+		particles.push_back(p);
+	}
+	ParticleSystem::move(dt);
+}
+
+void Jet::colorize(Particle const &p)
+{
+	double w = std::pow(p.life / base_life, 3.0);
+	double v = p.value * w;
+	glColor4f(2.5 * v, 2.5 * v - 1.0, 5.0 * v - 4.0, 1.0);
 }

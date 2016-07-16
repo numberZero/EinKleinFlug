@@ -18,6 +18,9 @@ struct ParticleSystem
 
 	ParticleSystem(World *world);
 
+	bool viable() const;
+	void die();
+
 	void move(double dt);
 	void draw(BodyState const *base);
 
@@ -30,5 +33,15 @@ struct Explosion: ParticleSystem
 	double const base_vel;
 	double const base_life;
 	Explosion(World *world, PointState const &base, double power = 200.0);
+	void colorize(Particle const &p) override;
+};
+
+struct Jet: ParticleSystem
+{
+	double const base_vel;
+	double const base_life;
+	BodyState const &parent;
+	PointState const &shift;
+	Jet(World *world, BodyState const &parent, PointState const &shift);
 	void colorize(Particle const &p) override;
 };

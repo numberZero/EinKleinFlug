@@ -34,6 +34,6 @@ struct Body:
 {
 	World *world;
 	void prepare();
-	void move();
+	virtual void move();
 	CollisionTestResult testCollision(Body const *with, bool full_eval = false) const;
 };

@@ -1,5 +1,6 @@
 #include "ship.hxx"
 #include <GL/gl.h>
+#include "particles.hxx"
 #include "text.hxx"
 #include "world.hxx"
 
@@ -10,6 +11,24 @@ Ship::Ship(World *world, double hp, double armor) :
 {
 	this->world = world;
 	world->ships.push_back(this);
+}
+
+bool Ship::viable() const
+{
+	return hp > 0;
+}
+
+void Ship::die()
+{
+	world->particles.push_back(new Explosion(world, *this, 200.0));
+}
+
+void Ship::move()
+{
+	Body::move();
+	hp += recharge_rate * world->dt;
+	if(hp >= max_hp)
+		hp = max_hp;
 }
 
 void Ship::draw(BodyState const *base)

@@ -1,4 +1,6 @@
 #include "world.hxx"
+#include <GL/gl.h>
+#include "particles.hxx"
 #include "ship.hxx"
 
 World::World(double size):
@@ -32,18 +34,46 @@ void World::collide()
 				continue; // already going away
 			if((cinfo.collision_speed < eps) && (cinfo.distance < -eps))
 			{ // intersected
-				ships.erase(pship1);
-				if(iter1 == pship2)
-					++iter1;
-				ships.erase(pship2);
+				ship1->hp = 0;
+				ship2->hp = 0;
 				break;
 			}
 			// collided
 			manifold.remap(*ship1, *ship2);
- 			double dv1 = -2 * cinfo.collision_speed * ship2->mass / (ship1->mass + ship2->mass);
- 			double dv2 = 2 * cinfo.collision_speed * ship1->mass / (ship1->mass + ship2->mass);
+			double momentum = cinfo.collision_speed * ship1->mass * ship2->mass / (ship1->mass + ship2->mass);
+			double energy = 2.0 * momentum * momentum /  (ship1->mass + ship2->mass);
+			double dv1 = -2 * cinfo.collision_speed * ship2->mass / (ship1->mass + ship2->mass);
+			double dv2 = 2 * cinfo.collision_speed * ship1->mass / (ship1->mass + ship2->mass);
 			ship1->vel += dv1 * cinfo.collision_direction;
 			ship2->vel += dv2 * cinfo.collision_direction;
+			ship1->hp -= 1e-3 * energy / ship1->armor;
+			ship2->hp -= 1e-3 * energy / ship2->armor;
+		}
+	}
+}
+
+void World::cleanup()
+{
+	for(auto iter = ships.begin(); iter != ships.end(); )
+	{
+		auto pship = iter++;
+		Ship *ship = *pship;
+		if(!ship->viable())
+		{
+			ships.erase(pship);
+			ship->die();
+			delete ship;
+		}
+	}
+	for(auto iter = particles.begin(); iter != particles.end(); )
+	{
+		auto pparts = iter++;
+		ParticleSystem *parts = *pparts;
+		if(!parts->viable())
+		{
+			particles.erase(pparts);
+			parts->die();
+			delete parts;
 		}
 	}
 }
@@ -52,4 +82,17 @@ void World::move()
 {
 	for(Ship *ship: ships)
 		ship->move();
+	for(ParticleSystem *parts: particles)
+		parts->move(dt);
+}
+
+void World::draw(Ship const *base)
+{
+	for(Ship *ship: ships)
+		ship->draw(base);
+
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	for(ParticleSystem *parts: particles)
+		parts->draw(base);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }

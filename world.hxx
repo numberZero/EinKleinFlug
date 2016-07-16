@@ -17,5 +17,8 @@ struct World
 
 	void prepare(double step);
 	void collide();
+	void cleanup();
 	void move();
+
+	void draw(Ship const *base);
 };

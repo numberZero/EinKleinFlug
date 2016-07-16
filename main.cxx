@@ -17,15 +17,11 @@ static long t_base;
 
 World world(100.0);
 Ship *me;
-Explosion *e1;
 
-void init()
+static std::ranlux24 gen(std::time(nullptr));
+
+void respawn()
 {
-	static std::ranlux24 gen(std::time(nullptr));
-	static std::uniform_real_distribution<double> pos(-world.manifold.radius, world.manifold.radius);
-	static std::uniform_real_distribution<double> phi(-M_PI, M_PI);
-	static std::uniform_real_distribution<double> vel(0.0, 7.0);
-	static std::uniform_real_distribution<double> rvel(-0.2, 0.2);
 	me = new Ship(&world);
 	me->mirror = false;
 	me->pos = { 0.0, 0.0 };
@@ -35,7 +31,15 @@ void init()
 	me->radius = 4.0;
 	me->mass = 5000.0;
 	me->rinertia = 5000.0;
-	e1 = new Explosion(&world, *me, 200.0);
+}
+
+void init()
+{
+	static std::uniform_real_distribution<double> pos(-world.manifold.radius, world.manifold.radius);
+	static std::uniform_real_distribution<double> phi(-M_PI, M_PI);
+	static std::uniform_real_distribution<double> vel(0.0, 7.0);
+	static std::uniform_real_distribution<double> rvel(-0.2, 0.2);
+	respawn();
 	for(int k = 0; k != 24; ++k)
 	{
 		Ship *obj = new Ship(&world);
@@ -79,9 +83,10 @@ void step()
 
 	world.prepare(dt);
 	world.collide();
+	if(!me->viable())
+		respawn();
+	world.cleanup();
 	world.move();
-
-	e1->move(dt);
 
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -89,39 +94,10 @@ void step()
 	glLoadIdentity();
 	glScalef(scale, scale, scale);
 	glTranslated(0, -10.0, 0.0);
-
-	for(Ship *object: world.ships)
-		object->draw(me);
-
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-	e1->draw(me);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	glLineWidth(1.5);
-	glColor4f(0.0, 1.0, 0.0, 1.0);
-	glBegin(GL_LINE_STRIP);
-	glVertex2d(-5.0, -3.0);
-	glVertex2d(-5.0, -5.0);
-	glVertex2d(-3.0, -5.0);
-	glEnd();
-	glBegin(GL_LINE_STRIP);
-	glVertex2d(5.0, -3.0);
-	glVertex2d(5.0, -5.0);
-	glVertex2d(3.0, -5.0);
-	glEnd();
-	glBegin(GL_LINE_STRIP);
-	glVertex2d(5.0, 3.0);
-	glVertex2d(5.0, 5.0);
-	glVertex2d(3.0, 5.0);
-	glEnd();
-	glBegin(GL_LINE_STRIP);
-	glVertex2d(-5.0, 3.0);
-	glVertex2d(-5.0, 5.0);
-	glVertex2d(-3.0, 5.0);
-	glEnd();
-
+	world.draw(me);
+// mark “me”
 	glLineWidth(5.0);
-	glColor4f(1.0, 1.0, 1.0, 0.3);
+	glColor4f(0.0, 1.0, 0.0, 0.3);
 	glRotated(-180.0 / M_PI * me->rpos, 0.0, 0.0, 1.0);
 	glBegin(GL_LINES);
 	for(long k = 0; k != 32; ++k)
@@ -136,7 +112,7 @@ void step()
 	glColor4f(0.0, 1.0, 0.0, 0.7);
 	vglTextOutF(-390.0, 280.0, 14.0, 1.0, "FPS: %.1f", fps);
 	vglTextOutF(-390.0, 260.0, 14.0, 1.0, "Ships: %d", world.ships.size());
-	vglTextOutF(-390.0, 240.0, 14.0, 1.0, "Particles: %d", e1->particles.size());
+	vglTextOutF(-390.0, 240.0, 14.0, 1.0, "Particle systems: %d", world.particles.size());
 
 	glFlush();
 	glFinish();

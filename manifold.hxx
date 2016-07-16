@@ -21,6 +21,7 @@ private:
 	bool shift_y(PointState &state, int dir) const;
 	bool stepState_base(PointState &state, double dt) const;
 	bool remap_base(BodyState const &base, PointState &state) const;
+	void relativize_base(BodyState const &base, PointState &state) const;
 
 public:
 	double const radius;

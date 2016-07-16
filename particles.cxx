@@ -9,6 +9,15 @@ ParticleSystem::ParticleSystem(World *world) :
 {
 }
 
+bool ParticleSystem::viable() const
+{
+	return !particles.empty();
+}
+
+void ParticleSystem::die()
+{
+}
+
 void ParticleSystem::move(double dt)
 {
 	for(auto iter = particles.begin(); iter != particles.end(); )
@@ -27,6 +36,7 @@ void ParticleSystem::draw(BodyState const *base)
 	glRotated(-180.0 / M_PI * base->rpos, 0.0, 0.0, 1.0);
 	if(base->mirror)
 		glScaled(-1.0, 1.0, 1.0);
+	glTranslated(-base->pos[0], -base->pos[1], 0.0);
 	for(Particle const &part: particles)
 	{
 		PointState pt = part;
@@ -93,8 +103,8 @@ Explosion::Explosion(World *world, PointState const &base, double power) :
 		double b = phi(gen);
 		double v = vel(gen);
 
-		p.pos = r * Eigen::Vector2d{ std::cos(a), std::sin(a) };
-		p.vel = v * Eigen::Vector2d{ std::cos(b), std::sin(b) };
+		p.pos = base.pos + r * Eigen::Vector2d{ std::cos(a), std::sin(a) };
+		p.vel = base.vel + v * Eigen::Vector2d{ std::cos(b), std::sin(b) };
 		p.value = base_vel / (v + 10.0);
 		p.life = base_life * (0.5 + 0.025 * v) * dlife(gen);
 		particles.push_back(p);

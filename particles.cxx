@@ -75,8 +75,8 @@ void ParticleSystem::colorize(Particle const &p)
 
 Explosion::Explosion(World *world, PointState const &base, double power) :
 	ParticleSystem(world),
-	base_vel(std::sqrt(power / 2.0)),
-	base_life(std::sqrt(power / 32.0))
+	base_vel(2.5 * std::pow(power, 0.25)),
+	base_life(0.5 * std::log(power + 1.0) + 0.1)
 {
 	auto seed = std::time(nullptr);
 	static std::ranlux24 gen(seed);
@@ -95,7 +95,7 @@ Explosion::Explosion(World *world, PointState const &base, double power) :
 
 		p.pos = r * Eigen::Vector2d{ std::cos(a), std::sin(a) };
 		p.vel = v * Eigen::Vector2d{ std::cos(b), std::sin(b) };
-		p.value = 1 - 0.05 * v;
+		p.value = base_vel / (v + 10.0);
 		p.life = base_life * (0.5 + 0.025 * v) * dlife(gen);
 		particles.push_back(p);
 		power -= p.value;
@@ -104,6 +104,7 @@ Explosion::Explosion(World *world, PointState const &base, double power) :
 
 void Explosion::colorize(Particle const &p)
 {
-	double v = p.value * std::pow(p.life / base_life, 1.0);
-	glColor4f(5.0 * std::pow(v, 1.5), 5.0 * v - 1.0, 10.0 * v - 3.0, 1.0);
+	double v = p.value;
+	double w = std::pow(p.life / base_life, 3.0);
+	glColor4f(w, w * (3.0 * v - 1.0), w * (4.0 * v - 2.0), 1.0);
 }

@@ -27,8 +27,8 @@ struct ParticleSystem
 
 struct Explosion: ParticleSystem
 {
-	double const base_vel = 10.0;
-	double const base_life = 2.5;
-	Explosion(World *world, PointState const &base, double power);
+	double const base_vel;
+	double const base_life;
+	Explosion(World *world, PointState const &base, double power = 200.0);
 	void colorize(Particle const &p) override;
 };

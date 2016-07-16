@@ -1,5 +1,5 @@
 #pragma once
-#include <list>
+#include <set>
 #include "manifold.hxx"
 
 class Ship;
@@ -8,8 +8,8 @@ class ParticleSystem;
 struct World
 {
 	SquareKleinBottle manifold;
- 	std::list<Ship *> ships;
- 	std::list<ParticleSystem *> particles;
+	std::set<Ship *> ships;
+	std::set<ParticleSystem *> particles;
 	double t = 0.0;
 	double dt;
 

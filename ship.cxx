@@ -10,7 +10,7 @@ Ship::Ship(World *world, double hp, double armor) :
 	armor(armor)
 {
 	this->world = world;
-	world->ships.push_back(this);
+	world->ships.insert(this);
 }
 
 bool Ship::viable() const
@@ -20,7 +20,7 @@ bool Ship::viable() const
 
 void Ship::die()
 {
-	world->particles.push_back(new Explosion(world, *this, 200.0));
+	world->particles.insert(new Explosion(world, *this, 200.0));
 }
 
 void Ship::move()

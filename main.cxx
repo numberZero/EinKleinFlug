@@ -22,7 +22,7 @@ static std::ranlux24 gen(std::time(nullptr));
 
 void respawn()
 {
-	me = new Ship(&world);
+	me = new Ship(&world, 20.0, 20.0);
 	me->mirror = false;
 	me->pos = { 0.0, 0.0 };
 	me->vel = { 3.0, 5.0 };

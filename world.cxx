@@ -41,7 +41,7 @@ void World::collide()
 			// collided
 			manifold.remap(*ship1, *ship2);
 			double momentum = cinfo.collision_speed * ship1->mass * ship2->mass / (ship1->mass + ship2->mass);
-			double energy = 2.0 * momentum * momentum /  (ship1->mass + ship2->mass);
+			double energy = 0.5 * cinfo.collision_speed * momentum;
 			double dv1 = -2 * cinfo.collision_speed * ship2->mass / (ship1->mass + ship2->mass);
 			double dv2 = 2 * cinfo.collision_speed * ship1->mass / (ship1->mass + ship2->mass);
 			ship1->vel += dv1 * cinfo.collision_direction;

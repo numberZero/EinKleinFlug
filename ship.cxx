@@ -71,27 +71,40 @@ void Ship::draw_info()
 
 void Ship::draw_model()
 {
-	glLineWidth(2.0);
-	glColor4f(1.0, 1.0, 0.0, 1.0);
-	glBegin(GL_LINES);
-	glVertex2d(0.0, -3.0);
-	glVertex2d(0.0, 3.0);
-	glVertex2d(0.0, 1.0);
-	glVertex2d(2.0, 0.0);
-	glVertex2d(0.0, 1.0);
-	glVertex2d(-2.0, 0.0);
+	static long const q = 32;
+	glBegin(GL_QUADS);
+	glColor4f(0.0, 0.0, 0.3, 1.0);
+	glVertex2d(-3.0, 0.0);
+	glVertex2d(-3.0, 1.0);
 	glVertex2d(0.0, 0.0);
-	glVertex2d(2.0, -1.0);
+	glVertex2d(0.0, -2.0);
+	glColor4f(0.3, 0.0, 0.0, 1.0);
+	glVertex2d(3.0, 0.0);
+	glVertex2d(3.0, 1.0);
+	glVertex2d(0.0, 0.0);
+	glVertex2d(0.0, -2.0);
+	glColor4f(0.0, 0.3, 0.0, 1.0);
+	glVertex2d(-0.6, -2.6);
+	glVertex2d(-0.6, 2.0);
+	glVertex2d(0.0, 2.4);
+	glVertex2d(0.0, -2.6);
+	glVertex2d(0.6, -2.6);
+	glVertex2d(0.6, 2.0);
+	glVertex2d(0.0, 2.4);
+	glVertex2d(0.0, -2.6);
 	glEnd();
 
-	glLineWidth(3.0);
-	glColor4f(0.0, 1.0, 0.8 + 0.2 * std::sin(5.0 * world->t), 0.5);
-	glBegin(GL_LINE_LOOP);
-	for(long k = 0; k != 32; ++k)
+	double const b = 0.8 + 0.2 * std::sin(5.0 * world->t);
+	glBegin(GL_QUAD_STRIP);
+	for(long k = 0; k != q + 1; ++k)
 	{
-		double r = radius;
-		double phi = M_PI / 16.0 * k;
-		glVertex2d(r * std::cos(phi), r * std::sin(phi));
+		double r1 = radius * 0.85;
+		double r2 = radius * 1.0;
+		double phi = 2.0 * M_PI / q * k;
+		glColor4f(0.0, 1.0, b, 0.0);
+		glVertex2d(r1 * std::cos(phi), r1 * std::sin(phi));
+		glColor4f(0.0, 1.0, b, 0.7);
+		glVertex2d(r2 * std::cos(phi), r2 * std::sin(phi));
 	}
 	glEnd();
 }

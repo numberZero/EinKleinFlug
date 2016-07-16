@@ -10,6 +10,7 @@ struct World
 	SquareKleinBottle manifold;
  	std::list<Ship *> ships;
  	std::list<ParticleSystem *> particles;
+	double t = 0.0;
 	double dt;
 
 	World(double size = 50.0);

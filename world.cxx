@@ -9,6 +9,7 @@ World::World(double size):
 void World::prepare(double step)
 {
 	dt = step;
+	t += dt;
 	for(Ship *ship: ships)
 		ship->prepare();
 }

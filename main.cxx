@@ -4,21 +4,26 @@
 #include <random>
 #include <Eigen/Core>
 #include <GL/gl.h>
+#include <GL/glut.h>
 #include <SDL.h>
 #include "ship.hxx"
+#include "text.hxx"
 #include "world.hxx"
 
 SDL_Window *window;
 static SDL_GLContext context;
 static long t_base;
 
-World world;
+World world(100.0);
 Ship *me;
 
 void init()
 {
 	static std::ranlux24 gen(std::time(nullptr));
-	static std::uniform_real_distribution<double> pos(-50.0, 50.0);
+	static std::uniform_real_distribution<double> pos(-world.manifold.radius, world.manifold.radius);
+	static std::uniform_real_distribution<double> phi(-M_PI, M_PI);
+	static std::uniform_real_distribution<double> vel(0.0, 7.0);
+	static std::uniform_real_distribution<double> rvel(-0.2, 0.2);
 	me = new Ship(&world);
 	me->mirror = false;
 	me->pos = { 0.0, 0.0 };
@@ -31,15 +36,33 @@ void init()
 	for(int k = 0; k != 24; ++k)
 	{
 		Ship *obj = new Ship(&world);
+		double a = phi(gen);
+		double v = vel(gen);
 		obj->mirror = false;
 		obj->pos = { pos(gen), pos(gen) };
-		obj->vel = { 0.0, 0.0 };
-		obj->rpos = 0.0;
-		obj->rvel = 0.0;
+		obj->vel = { v * std::cos(a), v * std::sin(a) };
+		obj->rpos = phi(gen);
+		obj->rvel = rvel(gen);
 		obj->radius = 4.0;
 		obj->mass = 5000.0;
 		obj->rinertia = 5000.0;
 	}
+}
+
+double advanceFrameRateCounter(double dt)
+{
+	long static frames = 0;
+	double static time = 0.0;
+	double static rate = 0.0;
+	++frames;
+	time += dt;
+	if(time >= 1.0)
+	{
+		rate = frames / time;
+		frames = 0;
+		time = 0;
+	}
+	return rate;
 }
 
 void step()
@@ -48,6 +71,7 @@ void step()
 	long const t_now = SDL_GetTicks();
 	double const t = 0.001 * t_now;
 	double const dt = 0.001 * (t_now - t_base);
+	double const fps = advanceFrameRateCounter(dt);
 	t_base = t_now;
 
 	world.prepare(dt);
@@ -61,66 +85,8 @@ void step()
 	glScalef(scale, scale, scale);
 	glTranslated(0, -10.0, 0.0);
 
-// load absolute coordinate system
-	glPushMatrix();
-	glColor4f(1.0, 1.0, 1.0, 0.3);
-
 	for(Ship *object: world.ships)
-	{
-		glPushMatrix();
-		BodyState state = *object;
-		world.manifold.relativize(*me, state);
-		glTranslated(state.pos[0], state.pos[1], 0.0);
-
-		double hpp = object->hp / object->max_hp;
-		glLineWidth(0.5);
-		glColor4f(2.0 * (1.0 - hpp), 2.0 * hpp, 0.0, 1.0);
-		glBegin(GL_QUADS);
-		glVertex2d(-3.0, -4.5);
-		glVertex2d(-3.0, -5.0);
-		glVertex2d(-3.0 + 6.0 * hpp, -5.0);
-		glVertex2d(-3.0 + 6.0 * hpp, -4.5);
-		glEnd();
-
-		glColor4f(0.0, 0.2, 0.0, 1.0);
-		glBegin(GL_LINE_LOOP);
-		glVertex2d(-3.0, -4.5);
-		glVertex2d(-3.0, -5.0);
-		glVertex2d(3.0, -5.0);
-		glVertex2d(3.0, -4.5);
-		glEnd();
-
-		if(state.mirror)
-			glScaled(-1.0, 1.0, 1.0);
-		glRotatef(180.0 / M_PI * state.rpos, 0.0, 0.0, 1.0);
-
-		glLineWidth(2.0);
-		glColor4f(1.0, 1.0, 0.0, 1.0);
-		glBegin(GL_LINES);
-		glVertex2d(0.0, -3.0);
-		glVertex2d(0.0, 3.0);
-		glVertex2d(0.0, 1.0);
-		glVertex2d(2.0, 0.0);
-		glVertex2d(0.0, 1.0);
-		glVertex2d(-2.0, 0.0);
-		glVertex2d(0.0, 0.0);
-		glVertex2d(2.0, -1.0);
-		glEnd();
-
-		glLineWidth(3.0);
-		glColor4f(0.0, 1.0, 0.8 + 0.2 * std::sin(5.0 * t), 0.5);
-		glBegin(GL_LINE_LOOP);
-		for(long k = 0; k != 32; ++k)
-		{
-			double r = object->radius;
-			double phi = M_PI / 16.0 * k;
-			glVertex2d(r * std::cos(phi), r * std::sin(phi));
-		}
-		glEnd();
-
-		glPopMatrix();
-	}
-	glPopMatrix(); // return to relative coordinate system
+		object->draw(me);
 
 	glLineWidth(1.5);
 	glColor4f(0.0, 1.0, 0.0, 1.0);
@@ -144,6 +110,23 @@ void step()
 	glVertex2d(-5.0, 5.0);
 	glVertex2d(-3.0, 5.0);
 	glEnd();
+
+	glLineWidth(5.0);
+	glColor4f(1.0, 1.0, 1.0, 0.3);
+	glRotated(-180.0 / M_PI * me->rpos, 0.0, 0.0, 1.0);
+	glBegin(GL_LINES);
+	for(long k = 0; k != 32; ++k)
+	{
+		double r = 1.3 * me->radius;
+		double phi = M_PI / 16.0 * k;
+		glVertex2d(r * std::cos(phi), r * std::sin(phi));
+	}
+	glEnd();
+
+	glLoadIdentity();
+	glColor4f(0.0, 1.0, 0.0, 0.7);
+	vglTextOutF(-390.0, 280.0, 14.0, 1.0, "FPS: %.1f", fps);
+	vglTextOutF(-390.0, 260.0, 14.0, 1.0, "Ships: %d", world.ships.size());
 
 	glFlush();
 	glFinish();
@@ -200,6 +183,7 @@ void initGL()
 
 int main(int argc, char **argv)
 {
+	glutInit(&argc, argv);
 	initSDL();
 	initGL();
 	init();

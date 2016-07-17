@@ -50,7 +50,7 @@ struct Jet: ParticleSystem
 	PointState const shift;
 	double energy = 0.0;
 	double power;
-	Jet(World *world, BodyState const &parent, PointState const &shift, double full_thrust, double visual_scale);
+	Jet(World *world, BodyState const &parent, PointState const &shift, double full_thrust, double visual_scale = 0.1, double visual_density = 1.0);
 	bool viable() const override;
 	void move(double dt) override;
 	void colorize(Particle const &p) override;

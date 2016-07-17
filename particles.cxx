@@ -63,7 +63,7 @@ void ParticleSystem::draw(BodyState const *base)
 
 void ParticleSystem::draw1(Particle const &p)
 {
-	long const q = 16;
+	long const q = 5;//16;
 	double const dphi = 2.0 * M_PI / q;
 	glBegin(GL_TRIANGLE_FAN);
 	colorize(p);
@@ -121,14 +121,15 @@ void Explosion::colorize(Particle const &p)
 	glColor4f(w, w * (3.0 * v - 1.0), w * (4.0 * v - 2.0), 1.0);
 }
 
-Jet::Jet(World *world, BodyState const &parent, PointState const &shift, double full_thrust, double visual_scale):
+Jet::Jet(World *world, BodyState const &parent, PointState const &shift, double full_thrust, double visual_scale, double 
+visual_density):
 	ParticleSystem(world, 0.5),
 	full_thrust(full_thrust),
 	base_vel(visual_scale * shift.vel.norm()),
-	base_life(0.4),
+	base_life(0.02 / visual_scale),
 	pos_spread(0.2),
 	vel_spread(0.2 * base_vel),
-	size_fullpower(150.0),
+	size_fullpower(150.0 * visual_density),
 	particle_energy(base_life / size_fullpower),
 	parent(parent),
 	shift{shift.pos, visual_scale * shift.vel}
@@ -146,11 +147,12 @@ void Jet::move(double dt)
 	static std::uniform_real_distribution<double> phi(-M_PI, M_PI);
 	std::uniform_real_distribution<double> dv(0.0, vel_spread);
 	std::uniform_real_distribution<double> dp(0.0, pos_spread);
+	std::uniform_real_distribution<double> ddt(-0.5 * dt, 0.5 * dt);
 	static std::uniform_real_distribution<double> dlife(0.9, 1.1);
 	energy += power * dt;
 	while(energy > 0.0)
 	{
-		energy -= 0.001;
+		energy -= particle_energy;
 		Particle p;
 		(PointState &)p = shift;
 		double a = phi(gen);
@@ -161,6 +163,7 @@ void Jet::move(double dt)
 		r = dp(gen);
 		p.pos[0] += r * std::cos(a);
 		p.pos[1] += r * std::sin(a);
+		p.pos += ddt(gen) * p.vel;
 		p.value = p.vel.dot(shift.vel) / (base_vel * base_vel);
 		p.life = dlife(gen) * base_life * p.value;
 		world->manifold.absolutize(parent, p);

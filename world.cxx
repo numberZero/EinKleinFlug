@@ -18,6 +18,7 @@ void World::prepare(double step)
 
 void World::collide()
 {
+// ship-ship collisions
 	static double const eps = 0.1;
 	for(auto iter1 = ships.begin(); iter1 != ships.end(); )
 	{
@@ -48,6 +49,31 @@ void World::collide()
 			ship2->vel += dv2 * cinfo.collision_direction;
 			ship1->hp -= 1e-3 * energy / ship1->armor;
 			ship2->hp -= 1e-3 * energy / ship2->armor;
+		}
+	}
+// ship-particle collisions
+	for(Ship *ship: ships)
+	{
+		for(ParticleSystem *ps: particles)
+		{
+			for(auto iter = ps->particles.begin(); iter != ps->particles.end(); )
+			{
+				auto ppart = iter++;
+				Particle &part = *ppart;
+				PointState pt(part);
+				if(manifold.distance(*ship, pt) < ship->radius)
+				{
+					if(ps->ship == ship && !part.left)
+						continue;
+					ship->hp -= part.value;
+					ps->particles.erase(ppart);
+				}
+				else
+				{
+					if(ps->ship == ship)
+						part.left = false;
+				}
+			}
 		}
 	}
 }

@@ -36,7 +36,7 @@ void SquareKleinBottle::stepState(BodyState &state, double dt) const
 	state.rpos += dt * state.rvel;
 }
 
-bool SquareKleinBottle::remap_base(BodyState const &base, PointState &state) const
+bool SquareKleinBottle::remap_base(PointState const &base, PointState &state) const
 {
 	bool f = false;
 	if(std::abs(state.pos[1] - base.pos[1]) > radius)
@@ -46,12 +46,12 @@ bool SquareKleinBottle::remap_base(BodyState const &base, PointState &state) con
 	return f;
 }
 
-void SquareKleinBottle::remap(BodyState const &base, PointState &state) const
+void SquareKleinBottle::remap(PointState const &base, PointState &state) const
 {
 	remap_base(base, state);
 }
 
-void SquareKleinBottle::remap(BodyState const &base, BodyState &state) const
+void SquareKleinBottle::remap(PointState const &base, BodyState &state) const
 {
 	state.mirror ^= remap_base(base, state);
 }
@@ -110,4 +110,11 @@ void SquareKleinBottle::absolutize(BodyState const &base, PointState &state) con
 
 	state.pos += base.pos;
 	state.vel += base.vel;
+}
+
+double SquareKleinBottle::distance(PointState const &a, PointState const &b) const
+{
+	PointState bb(b);
+	remap(a, bb);
+	return (bb.pos - a.pos).norm();
 }

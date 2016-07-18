@@ -20,16 +20,17 @@ private:
 	bool shift_x(PointState &state, int dir) const;
 	bool shift_y(PointState &state, int dir) const;
 	bool stepState_base(PointState &state, double dt) const;
-	bool remap_base(BodyState const &base, PointState &state) const;
+	bool remap_base(PointState const &base, PointState &state) const;
 	void relativize_base(BodyState const &base, PointState &state) const;
 
 public:
 	double const radius;
 	void stepState(PointState &state, double dt) const;
 	void stepState(BodyState &state, double dt) const;
-	void remap(BodyState const &base, PointState &state) const;
-	void remap(BodyState const &base, BodyState &state) const;
+	void remap(PointState const &base, PointState &state) const;
+	void remap(PointState const &base, BodyState &state) const;
 	void relativize(BodyState const &base, PointState &state) const;
 	void relativize(BodyState const &base, BodyState &state) const;
 	void absolutize(BodyState const &base, PointState &state) const;
+	double distance(PointState const &a, PointState const &b) const;
 };

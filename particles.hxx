@@ -3,20 +3,24 @@
 #include "manifold.hxx"
 
 class World;
+class Ship;
 
 struct Particle: PointState
 {
 // 	Eigen::Vector2d scale;
 	double life;
 	double value;
+	bool left;
 };
 
 struct ParticleSystem
 {
 	World *world;
+	Ship const *ship;
 	std::list<Particle> particles;
 	double const particle_size;
 
+	ParticleSystem(Ship *base, double particle_size);
 	ParticleSystem(World *world, double particle_size);
 
 	virtual bool viable() const;
@@ -46,11 +50,10 @@ struct Jet: ParticleSystem
 	double const vel_spread;
 	double const size_fullpower;
 	double const particle_energy;
-	BodyState const &parent;
 	PointState const shift;
 	double energy = 0.0;
 	double power;
-	Jet(World *world, BodyState const &parent, PointState const &shift, double full_thrust, double visual_scale = 0.1, double visual_density = 1.0);
+	Jet(Ship *ship, PointState const &shift, double full_thrust, double visual_scale = 0.1, double visual_density = 1.0);
 	bool viable() const override;
 	void move(double dt) override;
 	void colorize(Particle const &p) override;

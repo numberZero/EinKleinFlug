@@ -2,10 +2,20 @@
 #include <ctime>
 #include <random>
 #include <GL/gl.h>
+#include "ship.hxx"
 #include "world.hxx"
+
+ParticleSystem::ParticleSystem(Ship *base, double particle_size) :
+	world(base->world),
+	ship(base),
+	particle_size(particle_size)
+{
+	world->particles.insert(this);
+}
 
 ParticleSystem::ParticleSystem(World *world, double particle_size) :
 	world(world),
+	ship(nullptr),
 	particle_size(particle_size)
 {
 	world->particles.insert(this);
@@ -121,9 +131,8 @@ void Explosion::colorize(Particle const &p)
 	glColor4f(w, w * (3.0 * v - 1.0), w * (4.0 * v - 2.0), 1.0);
 }
 
-Jet::Jet(World *world, BodyState const &parent, PointState const &shift, double full_thrust, double visual_scale, double 
-visual_density):
-	ParticleSystem(world, 0.5),
+Jet::Jet(Ship *ship, PointState const &shift, double full_thrust, double visual_scale, double visual_density):
+	ParticleSystem(ship, 0.5),
 	full_thrust(full_thrust),
 	base_vel(visual_scale * shift.vel.norm()),
 	base_life(0.02 / visual_scale),
@@ -131,7 +140,6 @@ visual_density):
 	vel_spread(0.2 * base_vel),
 	size_fullpower(150.0 * visual_density),
 	particle_energy(base_life / size_fullpower),
-	parent(parent),
 	shift{shift.pos, visual_scale * shift.vel}
 {
 }
@@ -164,9 +172,10 @@ void Jet::move(double dt)
 		p.pos[0] += r * std::cos(a);
 		p.pos[1] += r * std::sin(a);
 		p.pos += ddt(gen) * p.vel;
-		p.value = p.vel.dot(shift.vel) / (base_vel * base_vel);
-		p.life = dlife(gen) * base_life * p.value;
-		world->manifold.absolutize(parent, p);
+		p.value = particle_energy * p.vel.dot(shift.vel) / (base_vel * base_vel);
+		p.life = dlife(gen) * base_life * p.value / particle_energy;
+		p.left = !ship;
+		world->manifold.absolutize(*ship, p);
 		particles.push_back(p);
 	}
 	ParticleSystem::move(dt);
@@ -175,6 +184,6 @@ void Jet::move(double dt)
 void Jet::colorize(Particle const &p)
 {
 	double w = std::pow(p.life / base_life, 3.0);
-	double v = p.value * w;
+	double v = p.value * w / particle_energy;
 	glColor4f(2.5 * v, 2.5 * v - 1.0, 5.0 * v - 4.0, 1.0);
 }

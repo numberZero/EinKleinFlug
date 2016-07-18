@@ -58,20 +58,9 @@ void SquareKleinBottle::remap(PointState const &base, BodyState &state) const
 
 void SquareKleinBottle::relativize_base(BodyState const &base, PointState &state) const
 {
-	double c = std::cos(base.rpos);
-	double s = std::sin(base.rpos);
-	Eigen::Matrix2d rot;
-
-	state.pos -= base.pos;
-	state.vel -= base.vel;
-
-	if(base.mirror)
-		rot << -c, s, s, c;
-	else
-		rot << c, s, -s, c;
-
-	state.pos = rot * state.pos;
-	state.vel = rot * state.vel;
+	Eigen::Matrix2d rot = relativizationMatrix(base);
+	state.pos = rot * (state.pos - base.pos);
+	state.vel = rot * (state.vel - base.vel);
 }
 
 void SquareKleinBottle::relativize(BodyState const &base, PointState &state) const
@@ -94,27 +83,69 @@ void SquareKleinBottle::relativize(BodyState const &base, BodyState &state) cons
 	}
 }
 
-void SquareKleinBottle::absolutize(BodyState const &base, PointState &state) const
+Eigen::Matrix2d SquareKleinBottle::relativizationMatrix(double rpos, bool mirror) const
 {
-	double c = std::cos(base.rpos);
-	double s = std::sin(base.rpos);
+	double c = std::cos(rpos);
+	double s = std::sin(rpos);
 	Eigen::Matrix2d rot;
+	if(mirror)
+		rot << -c, s, s, c;
+	else
+		rot << c, s, -s, c;
+	return rot;
+}
 
-	if(base.mirror)
+Eigen::Matrix2d SquareKleinBottle::absolutizationMatrix(double rpos, bool mirror) const
+{
+	double c = std::cos(rpos);
+	double s = std::sin(rpos);
+	Eigen::Matrix2d rot;
+	if(mirror)
 		rot << -c, s, s, c; // gives correct result
 	else
 		rot << c, -s, s, c;
+	return rot;
+}
 
-	state.pos = rot * state.pos;
-	state.vel = rot * state.vel;
+Eigen::Matrix2d SquareKleinBottle::relativizationMatrix(const BodyState& base) const
+{
+	return relativizationMatrix(base.rpos, base.mirror);
+}
 
-	state.pos += base.pos;
-	state.vel += base.vel;
+Eigen::Matrix2d SquareKleinBottle::absolutizationMatrix(const BodyState& base) const
+{
+	return absolutizationMatrix(base.rpos, base.mirror);
+}
+
+void SquareKleinBottle::absolutize(BodyState const &base, PointState &state) const
+{
+	Eigen::Matrix2d rot = absolutizationMatrix(base);
+	state.pos = base.pos + rot * state.pos;
+	state.vel = base.vel + rot * state.vel;
 }
 
 double SquareKleinBottle::distance(PointState const &a, PointState const &b) const
 {
+#ifdef HARD_OPTIMIZE
+	Eigen::Vector2d d = b.pos - a.pos;
+	if(d[1] > radius)
+	{
+		d[0] = b.pos[0] + a.pos[0];
+		d[1] -= 2 * radius;
+	}
+	else if(d[1] < -radius)
+	{
+		d[0] = b.pos[0] + a.pos[0];
+		d[1] += 2 * radius;
+	}
+	if(d[0] > radius)
+		d[0] -= 2 * radius;
+	else if(d[0] < -radius)
+		d[0] += 2 * radius;
+	return d.norm();
+#else
 	PointState bb(b);
 	remap(a, bb);
 	return (bb.pos - a.pos).norm();
+#endif
 }

@@ -14,6 +14,8 @@ void Body::prepare()
 
 void Body::move()
 {
+	if(mirror)
+		rforce = -rforce;
 	vel += world->dt * force / mass;
 	rvel += world->dt * rforce / rinertia;
 	world->manifold.stepState(*static_cast<BodyState *>(this), world->dt);

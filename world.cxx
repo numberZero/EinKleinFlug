@@ -98,7 +98,6 @@ void World::cleanup()
 		if(!parts->viable())
 		{
 			particles.erase(pparts);
-			parts->die();
 			delete parts;
 		}
 	}

@@ -3,6 +3,8 @@
 #include <set>
 #include "body.hxx"
 
+class Jet;
+
 struct Ship: Body
 {
 private:
@@ -14,6 +16,7 @@ public:
 
 	double const recharge_rate = 0.5;
 	double const max_hp;
+	Jet *jets[4];
 	double hp;
 	double armor;
 

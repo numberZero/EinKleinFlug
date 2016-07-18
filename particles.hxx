@@ -24,7 +24,6 @@ struct ParticleSystem
 	ParticleSystem(World *world, double particle_size);
 
 	virtual bool viable() const;
-	void die();
 
 	virtual void move(double dt);
 	void draw(BodyState const *base);
@@ -43,6 +42,7 @@ struct Explosion: ParticleSystem
 
 struct Jet: ParticleSystem
 {
+private:
 	double const full_thrust;
 	double const base_vel;
 	double const base_life;
@@ -50,11 +50,19 @@ struct Jet: ParticleSystem
 	double const vel_spread;
 	double const size_fullpower;
 	double const particle_energy;
-	PointState const shift;
+	Eigen::Vector2d const part_vel;
+	bool alive = true;
 	double energy = 0.0;
-	double power;
-	Jet(Ship *ship, PointState const &shift, double full_thrust, double visual_scale = 0.1, double visual_density = 1.0);
+
+public:
+	Eigen::Vector2d const pos;
+	Eigen::Vector2d const thrust;
+	double power = 0.0;
+
+	Jet(Ship *ship, Eigen::Vector2d shift, Eigen::Vector2d thrust);
+	Jet(Ship *ship, PointState const &shift, double full_thrust, double visual_scale, double visual_density);
 	bool viable() const override;
+	void die();
 	void move(double dt) override;
 	void colorize(Particle const &p) override;
 };

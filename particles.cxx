@@ -26,10 +26,6 @@ bool ParticleSystem::viable() const
 	return !particles.empty();
 }
 
-void ParticleSystem::die()
-{
-}
-
 void ParticleSystem::move(double dt)
 {
 	for(auto iter = particles.begin(); iter != particles.end(); )
@@ -131,6 +127,21 @@ void Explosion::colorize(Particle const &p)
 	glColor4f(w, w * (3.0 * v - 1.0), w * (4.0 * v - 2.0), 1.0);
 }
 
+Jet::Jet(Ship *ship, Eigen::Vector2d shift, Eigen::Vector2d thrust):
+	ParticleSystem(ship, 0.5),
+	full_thrust(thrust.norm()),
+	base_vel(25.0),
+	base_life(0.4),
+	pos_spread(0.2),
+	vel_spread(0.2 * base_vel),
+	size_fullpower(150.0),
+	particle_energy(base_life / size_fullpower),
+	part_vel(-base_vel / full_thrust * thrust),
+	pos(shift),
+	thrust(thrust)
+{
+}
+
 Jet::Jet(Ship *ship, PointState const &shift, double full_thrust, double visual_scale, double visual_density):
 	ParticleSystem(ship, 0.5),
 	full_thrust(full_thrust),
@@ -140,29 +151,40 @@ Jet::Jet(Ship *ship, PointState const &shift, double full_thrust, double visual_
 	vel_spread(0.2 * base_vel),
 	size_fullpower(150.0 * visual_density),
 	particle_energy(base_life / size_fullpower),
-	shift{shift.pos, visual_scale * shift.vel}
+	part_vel(visual_scale * shift.vel),
+	pos(shift.pos),
+	thrust(full_thrust / base_vel * part_vel)
 {
 }
 
 bool Jet::viable() const
 {
-	return true; // permanent PS
+	return alive; // permanent PS
+}
+
+void Jet::die()
+{
+	alive = false;
 }
 
 void Jet::move(double dt)
 {
+	ParticleSystem::move(dt);
 	static std::ranlux24 gen(std::time(nullptr));
 	static std::uniform_real_distribution<double> phi(-M_PI, M_PI);
 	std::uniform_real_distribution<double> dv(0.0, vel_spread);
 	std::uniform_real_distribution<double> dp(0.0, pos_spread);
 	std::uniform_real_distribution<double> ddt(-0.5 * dt, 0.5 * dt);
 	static std::uniform_real_distribution<double> dlife(0.9, 1.1);
+	power = std::min(1.0, std::max(0.0, power));
 	energy += power * dt;
+	double dvel = std::sqrt(power);
 	while(energy > 0.0)
 	{
 		energy -= particle_energy;
 		Particle p;
-		(PointState &)p = shift;
+		p.pos = pos;
+		p.vel = dvel * part_vel;
 		double a = phi(gen);
 		double r = dv(gen);
 		p.vel[0] += r * std::cos(a);
@@ -172,13 +194,12 @@ void Jet::move(double dt)
 		p.pos[0] += r * std::cos(a);
 		p.pos[1] += r * std::sin(a);
 		p.pos += ddt(gen) * p.vel;
-		p.value = particle_energy * p.vel.dot(shift.vel) / (base_vel * base_vel);
+		p.value = particle_energy * p.vel.dot(part_vel) / (dvel * base_vel * base_vel);
 		p.life = dlife(gen) * base_life * p.value / particle_energy;
 		p.left = !ship;
 		world->manifold.absolutize(*ship, p);
 		particles.push_back(p);
 	}
-	ParticleSystem::move(dt);
 }
 
 void Jet::colorize(Particle const &p)

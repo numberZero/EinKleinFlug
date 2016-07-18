@@ -25,6 +25,13 @@ private:
 
 public:
 	double const radius;
+
+	Eigen::Matrix2d relativizationMatrix(double rpos, bool mirror) const;
+	Eigen::Matrix2d absolutizationMatrix(double rpos, bool mirror) const;
+
+	Eigen::Matrix2d relativizationMatrix(BodyState const &base) const;
+	Eigen::Matrix2d absolutizationMatrix(BodyState const &base) const;
+
 	void stepState(PointState &state, double dt) const;
 	void stepState(BodyState &state, double dt) const;
 	void remap(PointState const &base, PointState &state) const;

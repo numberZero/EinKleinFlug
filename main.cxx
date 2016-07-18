@@ -18,19 +18,13 @@ std::uint8_t const *keys;
 
 World world(100.0);
 Ship *me;
-Jet *jets[4] = { nullptr, nullptr, nullptr, nullptr };
+int respawn_count = -1;
 
 static std::ranlux24 gen(std::time(nullptr));
 
 void respawn()
 {
-	for(int k = 0; k != 4; ++k)
-		if(jets[k])
-		{
-			jets[k]->die();
-			world.particles.erase(jets[k]);
-			delete jets[k];
-		}
+	++respawn_count;
 	me = new Ship(&world, 20.0, 20.0);
 	me->mirror = false;
 	me->pos = { 0.0, 0.0 };
@@ -40,10 +34,6 @@ void respawn()
 	me->radius = 4.0;
 	me->mass = 5000.0;
 	me->rinertia = 5000.0;
-	jets[0] = new Jet(me, {{-2.0, -1.7}, {0.0, -500.0}}, 7500.0, 0.05);
-	jets[1] = new Jet(me, {{+2.0, -1.7}, {0.0, -500.0}}, 7500.0, 0.05);
-	jets[2] = new Jet(me, {{-2.0, 1.7}, {0.0, 500.0}}, 7500.0, 0.05);
-	jets[3] = new Jet(me, {{+2.0, 1.7}, {0.0, 500.0}}, 7500.0, 0.05);
 }
 
 void init()
@@ -101,10 +91,14 @@ void step()
 	bool down = keys[SDL_SCANCODE_DOWN];
 	bool left = keys[SDL_SCANCODE_LEFT];
 	bool right = keys[SDL_SCANCODE_RIGHT];
-	jets[0]->power = up && !left || right && !down ? 1.0 : 0.0;
-	jets[1]->power = up && !right || left && !down ? 1.0 : 0.0;
-	jets[2]->power = down && !right || left && !up ? 1.0 : 0.0;
-	jets[3]->power = down && !left || right && !up ? 1.0 : 0.0;
+	double const p_base = 1.0;
+	double const p_rot = 0.05;
+	double p_left 	= (up ? p_base : 0.0) + (down ? -p_base : 0.0) + (left ? -p_rot : 0.0) + (right ? p_rot : 0.0);
+	double p_right 	= (up ? p_base : 0.0) + (down ? -p_base : 0.0) + (left ? p_rot : 0.0) + (right ? -p_rot : 0.0);
+	me->jets[0]->power = p_left > 0 ? p_left : 0.0;
+	me->jets[1]->power = p_right > 0 ? p_right : 0.0;
+	me->jets[2]->power = p_left < 0 ? -p_left : 0.0;
+	me->jets[3]->power = p_right < 0 ? -p_right : 0.0;
 
 	world.prepare(slow ? dt_max : dt);
 	world.collide();
@@ -141,18 +135,18 @@ void step()
 	double h = 14.0;
 	glColor4f(0.0, 1.0, 0.0, 0.7);
 	vglTextOutF(x, y -= dy, h, w, "FPS: %.1f", fps);
-	if(slow)
-	{
-		glColor4f(1.0, 0.0, 0.0, 0.7);
-		vglTextOutF(x, y -= dy, h, w, "Lag");
-	}
-	glColor4f(0.0, 1.0, 0.0, 0.7);
+	vglTextOutF(x, y -= dy, h, w, "Respawns: %d", respawn_count);
 	vglTextOutF(x, y -= dy, h, w, "Ships: %d", world.ships.size());
 	vglTextOutF(x, y -= dy, h, w, "Particle systems: %d", world.particles.size());
 	if(me->mirror)
 	{
 		glColor4f(1.0, 1.0, 0.0, 0.7);
 		vglTextOutF(x, y -= dy, h, w, "Mirrored");
+	}
+	if(slow)
+	{
+		glColor4f(1.0, 0.0, 0.0, 0.7);
+		vglTextOutF(x, y -= dy, h, w, "Lag");
 	}
 
 	glFlush();
@@ -169,6 +163,10 @@ bool events()
 		{
 			case SDL_QUIT:
 				return false;
+			case SDL_KEYDOWN:
+				if(event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)
+					return false;
+				break;
 		}
 	}
 	return true;

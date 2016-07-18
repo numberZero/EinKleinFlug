@@ -8,7 +8,13 @@ Ship::Ship(World *world, double hp, double armor) :
 	Body(world),
 	max_hp(hp),
 	hp(hp),
-	armor(armor)
+	armor(armor),
+	jets{
+		new Jet(this, {-2.0, -1.7}, {0.0, 75000.0}),
+		new Jet(this, {+2.0, -1.7}, {0.0, 75000.0}),
+		new Jet(this, {-2.0, +1.7}, {0.0, -75000.0}),
+		new Jet(this, {+2.0, +1.7}, {0.0, -75000.0})
+	}
 {
 	world->ships.insert(this);
 }
@@ -20,11 +26,21 @@ bool Ship::viable() const
 
 void Ship::die()
 {
+	for(int k = 0; k != 4; ++k)
+		jets[k]->die();
 	new Explosion(world, *this, 200.0);
 }
 
 void Ship::move()
 {
+	Eigen::Matrix2d rot = world->manifold.absolutizationMatrix(*this);
+	for(int k = 0; k != 4; ++k)
+	{
+		Eigen::Vector2d shift = rot * jets[k]->pos;
+		Eigen::Vector2d thrust = jets[k]->power * rot * jets[k]->thrust;
+		force += thrust;
+		rforce += shift[0] * thrust[1] - shift[1] * thrust[0];
+	}
 	Body::move();
 	hp += recharge_rate * world->dt;
 	if(hp >= max_hp)

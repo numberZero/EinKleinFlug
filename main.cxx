@@ -18,30 +18,37 @@ std::uint8_t const *keys;
 
 World world(100.0);
 Ship *me;
+Beam *b = nullptr;
 int respawn_count = -1;
 
 static std::ranlux24 gen(std::time(nullptr));
+static std::uniform_real_distribution<double> pos(-world.manifold.radius, world.manifold.radius);
+static std::uniform_real_distribution<double> phi(-M_PI, M_PI);
+static std::uniform_real_distribution<double> vel(0.0, 7.0);
+static std::uniform_real_distribution<double> rvel(-0.2, 0.2);
 
 void respawn()
 {
+	double a = phi(gen);
+	double v = vel(gen);
 	++respawn_count;
 	me = new Ship(&world, 20.0, 20.0);
+	me->prepare();
 	me->mirror = false;
-	me->pos = { 0.0, 0.0 };
-	me->vel = { 3.0, 5.0 };
-	me->rpos = 0.0;
-	me->rvel = 0.1;
+	me->pos = { pos(gen), pos(gen) };
+	me->vel = { v * std::cos(a), v * std::sin(a) };
+	me->rpos = phi(gen);
+	me->rvel = 0.0;
 	me->radius = 4.0;
 	me->mass = 5000.0;
 	me->rinertia = 5000.0;
+	if(b)
+		b->die();
+	b = new Beam(me, {0.0, 3.0}, {0.0, 20.0}, 20.0, 200.0);
 }
 
 void init()
 {
-	static std::uniform_real_distribution<double> pos(-world.manifold.radius, world.manifold.radius);
-	static std::uniform_real_distribution<double> phi(-M_PI, M_PI);
-	static std::uniform_real_distribution<double> vel(0.0, 7.0);
-	static std::uniform_real_distribution<double> rvel(-0.2, 0.2);
 	respawn();
 	for(int k = 0; k != 24; ++k)
 	{
@@ -87,18 +94,40 @@ void step()
 	bool const slow = dt > dt_max;
 	t_base = t_now;
 
+	bool stabilize = keys[SDL_SCANCODE_S];
+	bool shot = keys[SDL_SCANCODE_SPACE];
 	bool up = keys[SDL_SCANCODE_UP];
 	bool down = keys[SDL_SCANCODE_DOWN];
 	bool left = keys[SDL_SCANCODE_LEFT];
 	bool right = keys[SDL_SCANCODE_RIGHT];
 	double const p_base = 1.0;
 	double const p_rot = 0.05;
+	double const p_stab = p_rot;
 	double p_left 	= (up ? p_base : 0.0) + (down ? -p_base : 0.0) + (left ? -p_rot : 0.0) + (right ? p_rot : 0.0);
 	double p_right 	= (up ? p_base : 0.0) + (down ? -p_base : 0.0) + (left ? p_rot : 0.0) + (right ? -p_rot : 0.0);
+	if(stabilize)
+	{
+		static double const eps = 0.01;
+		left = false;
+		right = false;
+		if(me->rvel > eps)
+		{
+			p_left += p_stab;
+			p_right -= p_stab;
+		}
+		else if(me->rvel < -eps)
+		{
+			p_left -= p_stab;
+			p_right += p_stab;
+		}
+		else
+			stabilize = false;
+	}
 	me->jets[0]->power = p_left > 0 ? p_left : 0.0;
 	me->jets[1]->power = p_right > 0 ? p_right : 0.0;
 	me->jets[2]->power = p_left < 0 ? -p_left : 0.0;
 	me->jets[3]->power = p_right < 0 ? -p_right : 0.0;
+	b->shots = shot;
 
 	world.prepare(slow ? dt_max : dt);
 	world.collide();
@@ -138,11 +167,12 @@ void step()
 	vglTextOutF(x, y -= dy, h, w, "Respawns: %d", respawn_count);
 	vglTextOutF(x, y -= dy, h, w, "Ships: %d", world.ships.size());
 	vglTextOutF(x, y -= dy, h, w, "Particle systems: %d", world.particles.size());
-	if(me->mirror)
-	{
-		glColor4f(1.0, 1.0, 0.0, 0.7);
-		vglTextOutF(x, y -= dy, h, w, "Mirrored");
-	}
+	glColor4f(1.0, 1.0, 0.0, 0.7);
+#ifndef NDEBUG
+	vglTextOutF(x, y -= dy, h, w, "Position: (%.1f, %.1f, %s)", me->pos[0], me->pos[1], me->mirror ? "positive" : "negative");
+#endif
+	if(stabilize)
+		vglTextOutF(x, y -= dy, h, w, "Stabilizing");
 	if(slow)
 	{
 		glColor4f(1.0, 0.0, 0.0, 0.7);
@@ -166,6 +196,8 @@ bool events()
 			case SDL_KEYDOWN:
 				if(event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)
 					return false;
+				if(event.key.keysym.scancode == SDL_SCANCODE_X)
+					respawn();
 				break;
 		}
 	}

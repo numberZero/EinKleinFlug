@@ -71,7 +71,7 @@ void World::collide()
 				else
 				{
 					if(ps->ship == ship)
-						part.left = false;
+						part.left = true;
 				}
 			}
 		}

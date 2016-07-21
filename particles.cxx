@@ -142,29 +142,14 @@ Jet::Jet(Ship *ship, Eigen::Vector2d shift, Eigen::Vector2d thrust):
 {
 }
 
-Jet::Jet(Ship *ship, PointState const &shift, double full_thrust, double visual_scale, double visual_density):
-	ParticleSystem(ship, 0.5),
-	full_thrust(full_thrust),
-	base_vel(visual_scale * shift.vel.norm()),
-	base_life(0.02 / visual_scale),
-	pos_spread(0.2),
-	vel_spread(0.2 * base_vel),
-	size_fullpower(150.0 * visual_density),
-	particle_energy(base_life / size_fullpower),
-	part_vel(visual_scale * shift.vel),
-	pos(shift.pos),
-	thrust(full_thrust / base_vel * part_vel)
-{
-}
-
 bool Jet::viable() const
 {
-	return alive; // permanent PS
+	return !!ship; // permanent PS
 }
 
 void Jet::die()
 {
-	alive = false;
+	ship = nullptr;
 }
 
 void Jet::move(double dt)
@@ -207,4 +192,74 @@ void Jet::colorize(Particle const &p)
 	double w = std::pow(p.life / base_life, 3.0);
 	double v = p.value * w / particle_energy;
 	glColor4f(2.5 * v, 2.5 * v - 1.0, 5.0 * v - 4.0, 1.0);
+}
+
+Beam::Beam(Ship *ship, Eigen::Vector2d shift, Eigen::Vector2d vel, double power, double range):
+	ParticleSystem(ship, 0.5),
+	base_vel(vel.norm()),
+	base_life(range / base_vel),
+	pos_spread(0.7),
+	vel_spread(0.07 * base_vel),
+	size_fullpower(800.0 * power),
+	particle_energy(base_life * power / size_fullpower),
+	pos(shift),
+	vel(vel),
+	power(power)
+{
+}
+
+// particels / second = power / particle_energy
+// size_fullpower = base_life * particels / second = base_life * power / particle_energy
+// particle_energy = base_life * power / size_fullpower
+
+bool Beam::viable() const
+{
+	return !!ship; // permanent PS
+}
+
+void Beam::die()
+{
+	ship = nullptr;
+}
+
+void Beam::move(double dt)
+{
+	ParticleSystem::move(dt);
+	static std::ranlux24 gen(std::time(nullptr));
+	static std::uniform_real_distribution<double> phi(-M_PI, M_PI);
+	std::uniform_real_distribution<double> dv(0.0, vel_spread);
+	std::uniform_real_distribution<double> dp(0.0, pos_spread);
+	std::uniform_real_distribution<double> ddt(-0.5 * dt, 0.5 * dt);
+	static std::uniform_real_distribution<double> dlife(0.9, 1.1);
+	if(shots)
+		energy += power * dt;
+	double dvel = std::sqrt(power);
+	while(energy > 0.0)
+	{
+		energy -= particle_energy;
+		Particle p;
+		p.pos = pos;
+		p.vel = dvel * vel;
+		double a = phi(gen);
+		double r = dv(gen);
+		p.vel[0] += r * std::cos(a);
+		p.vel[1] += r * std::sin(a);
+		a = phi(gen);
+		r = dp(gen);
+		p.pos[0] += r * std::cos(a);
+		p.pos[1] += r * std::sin(a);
+		p.pos += ddt(gen) * p.vel;
+		p.value = particle_energy * p.vel.dot(vel) / (dvel * base_vel * base_vel);
+		p.life = dlife(gen) * base_life * p.value / particle_energy;
+		p.left = !ship;
+		world->manifold.absolutize(*ship, p);
+		particles.push_back(p);
+	}
+}
+
+void Beam::colorize(Particle const &p)
+{
+	double w = std::pow(p.life / base_life, 3.0);
+	double v = p.value * w / particle_energy;
+	glColor4f(2.5 * v - 1.0, 5.0 * v - 4.0, 2.5 * v, 1.0);
 }

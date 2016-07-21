@@ -51,7 +51,6 @@ private:
 	double const size_fullpower;
 	double const particle_energy;
 	Eigen::Vector2d const part_vel;
-	bool alive = true;
 	double energy = 0.0;
 
 public:
@@ -60,7 +59,30 @@ public:
 	double power = 0.0;
 
 	Jet(Ship *ship, Eigen::Vector2d shift, Eigen::Vector2d thrust);
-	Jet(Ship *ship, PointState const &shift, double full_thrust, double visual_scale, double visual_density);
+	bool viable() const override;
+	void die();
+	void move(double dt) override;
+	void colorize(Particle const &p) override;
+};
+
+struct Beam: ParticleSystem
+{
+private:
+	double const base_vel;
+	double const base_life;
+	double const pos_spread;
+	double const vel_spread;
+	double const size_fullpower;
+	double const particle_energy;
+	double energy = 0.0;
+
+public:
+	double const power;
+	Eigen::Vector2d const vel;
+	Eigen::Vector2d const pos;
+	bool shots = false;
+
+	Beam(Ship *ship, Eigen::Vector2d shift, Eigen::Vector2d vel, double power, double range);
 	bool viable() const override;
 	void die();
 	void move(double dt) override;

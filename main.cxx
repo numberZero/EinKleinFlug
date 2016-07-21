@@ -134,7 +134,6 @@ void step()
 	if(!me->viable())
 		respawn();
 	world.cleanup();
-	world.move();
 
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -182,6 +181,8 @@ void step()
 	glFlush();
 	glFinish();
 	SDL_GL_SwapWindow(window);
+
+	world.move();
 }
 
 bool events()

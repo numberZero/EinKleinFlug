@@ -10,7 +10,7 @@ ParticleSystem::ParticleSystem(Ship *base, double particle_size) :
 	ship(base),
 	particle_size(particle_size)
 {
-	world->particles.insert(this);
+	init();
 }
 
 ParticleSystem::ParticleSystem(World *world, double particle_size) :
@@ -18,7 +18,21 @@ ParticleSystem::ParticleSystem(World *world, double particle_size) :
 	ship(nullptr),
 	particle_size(particle_size)
 {
+	init();
+}
+
+ParticleSystem::~ParticleSystem()
+{
+	glDeleteLists(drawlist, 1);
+}
+
+void ParticleSystem::init()
+{
 	world->particles.insert(this);
+	drawlist = glGenLists(1);
+	glNewList(drawlist, GL_COMPILE);
+	draw1();
+	glEndList();
 }
 
 bool ParticleSystem::viable() const
@@ -61,18 +75,18 @@ void ParticleSystem::draw(BodyState const *base)
 		};
 		glMultMatrixd(m);
 */
-		draw1(part);
+		colorize(part);
+		glCallList(drawlist);
 		glPopMatrix();
 	}
 	glPopMatrix();
 }
 
-void ParticleSystem::draw1(Particle const &p)
+void ParticleSystem::draw1()
 {
 	long const q = 5;//16;
 	double const dphi = 2.0 * M_PI / q;
 	glBegin(GL_TRIANGLE_FAN);
-	colorize(p);
 	glVertex2d(0.0, 0.0);
 	glColor4f(0.0, 0.0, 0.0, 1.0);
 	for(long k = 0; k != q; ++k)

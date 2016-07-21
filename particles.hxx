@@ -15,6 +15,12 @@ struct Particle: PointState
 
 struct ParticleSystem
 {
+private:
+	unsigned drawlist;
+	void init();
+	void draw1();
+
+public:
 	World *world;
 	Ship const *ship;
 	std::list<Particle> particles;
@@ -22,13 +28,13 @@ struct ParticleSystem
 
 	ParticleSystem(Ship *base, double particle_size);
 	ParticleSystem(World *world, double particle_size);
+	~ParticleSystem();
 
 	virtual bool viable() const;
 
 	virtual void move(double dt);
 	void draw(BodyState const *base);
 
-	virtual void draw1(Particle const &p);
 	virtual void colorize(Particle const &p);
 };
 

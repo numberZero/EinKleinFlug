@@ -10,12 +10,12 @@ struct World
 	SquareKleinBottle manifold;
 	std::set<Ship *> ships;
 	std::set<ParticleSystem *> particles;
-	double t = 0.0;
-	double dt;
+	Float t = 0.0;
+	Float dt;
 
-	World(double size = 50.0);
+	World(Float size = 50.0);
 
-	void prepare(double step);
+	void prepare(Float step);
 	void collide();
 	void cleanup();
 	void move();

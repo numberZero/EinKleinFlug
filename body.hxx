@@ -1,30 +1,30 @@
 #pragma once
 #include <list>
-#include <Eigen/Core>
+#include "types.hxx"
 #include "manifold.hxx"
 
 class World;
 
 struct BodyTemp
 {
-	Eigen::Vector2d force;
-	double rforce;
+	Vector2 force;
+	Float rforce;
 };
 
 struct BodyDesc
 {
-	double radius;
-	double mass;
-	double rinertia;
+	Float radius;
+	Float mass;
+	Float rinertia;
 };
 
 struct CollisionTestResult
 {
-	Eigen::Vector2d collision_direction;
-// 	Eigen::Vector2d sliding_direction;
-	double distance;
-	double collision_speed;
-// 	double sliding_speed;
+	Vector2 collision_direction;
+// 	Vector2 sliding_direction;
+	Float distance;
+	Float collision_speed;
+// 	Float sliding_speed;
 };
 
 struct Body:

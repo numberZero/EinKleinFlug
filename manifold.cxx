@@ -14,7 +14,7 @@ bool SquareKleinBottle::shift_y(PointState &state, int dir) const
 	return true;
 }
 
-bool SquareKleinBottle::stepState_base(PointState &state, double dt) const
+bool SquareKleinBottle::stepState_base(PointState &state, Float dt) const
 {
 	bool result = false;
 	state.pos += dt * state.vel;
@@ -25,12 +25,12 @@ bool SquareKleinBottle::stepState_base(PointState &state, double dt) const
 	return result;
 }
 
-void SquareKleinBottle::stepState(PointState &state, double dt) const
+void SquareKleinBottle::stepState(PointState &state, Float dt) const
 {
 	stepState_base(state, dt);
 }
 
-void SquareKleinBottle::stepState(BodyState &state, double dt) const
+void SquareKleinBottle::stepState(BodyState &state, Float dt) const
 {
 	state.mirror ^= stepState_base(state, dt);
 	state.rpos += dt * state.rvel;
@@ -83,10 +83,10 @@ void SquareKleinBottle::relativize(BodyState const &base, BodyState &state) cons
 	}
 }
 
-Eigen::Matrix2d SquareKleinBottle::relativizationMatrix(double rpos, bool mirror) const
+Eigen::Matrix2d SquareKleinBottle::relativizationMatrix(Float rpos, bool mirror) const
 {
-	double c = std::cos(rpos);
-	double s = std::sin(rpos);
+	Float c = std::cos(rpos);
+	Float s = std::sin(rpos);
 	Eigen::Matrix2d rot;
 	if(mirror)
 		rot << -c, s, s, c;
@@ -95,10 +95,10 @@ Eigen::Matrix2d SquareKleinBottle::relativizationMatrix(double rpos, bool mirror
 	return rot;
 }
 
-Eigen::Matrix2d SquareKleinBottle::absolutizationMatrix(double rpos, bool mirror) const
+Eigen::Matrix2d SquareKleinBottle::absolutizationMatrix(Float rpos, bool mirror) const
 {
-	double c = std::cos(rpos);
-	double s = std::sin(rpos);
+	Float c = std::cos(rpos);
+	Float s = std::sin(rpos);
 	Eigen::Matrix2d rot;
 	if(mirror)
 		rot << -c, s, s, c; // gives correct result
@@ -124,10 +124,10 @@ void SquareKleinBottle::absolutize(BodyState const &base, PointState &state) con
 	state.vel = base.vel + rot * state.vel;
 }
 
-double SquareKleinBottle::distance(PointState const &a, PointState const &b) const
+Float SquareKleinBottle::distance(PointState const &a, PointState const &b) const
 {
 #ifdef HARD_OPTIMIZE
-	Eigen::Vector2d d = b.pos - a.pos;
+	Vector2 d = b.pos - a.pos;
 	if(d[1] > radius)
 	{
 		d[0] = b.pos[0] + a.pos[0];

@@ -5,7 +5,7 @@
 #include "ship.hxx"
 #include "world.hxx"
 
-ParticleSystem::ParticleSystem(Ship *base, double particle_size) :
+ParticleSystem::ParticleSystem(Ship *base, Float particle_size) :
 	world(base->world),
 	ship(base),
 	particle_size(particle_size)
@@ -13,7 +13,7 @@ ParticleSystem::ParticleSystem(Ship *base, double particle_size) :
 	init();
 }
 
-ParticleSystem::ParticleSystem(World *world, double particle_size) :
+ParticleSystem::ParticleSystem(World *world, Float particle_size) :
 	world(world),
 	ship(nullptr),
 	particle_size(particle_size)
@@ -40,7 +40,7 @@ bool ParticleSystem::viable() const
 	return !particles.empty();
 }
 
-void ParticleSystem::move(double dt)
+void ParticleSystem::move(Float dt)
 {
 	for(auto iter = particles.begin(); iter != particles.end(); )
 	{
@@ -66,8 +66,8 @@ void ParticleSystem::draw(BodyState const *base)
 		glPushMatrix();
 		glTranslated(pt.pos[0], pt.pos[1], 0.0);
 /*
-		double d = part.scale.squaredNorm();
-		double m[16] = {
+		Float d = part.scale.squaredNorm();
+		Float m[16] = {
 			part.scale[0], part.scale[1], 0.0, 0.0,
 			-part.scale[1] / d, part.scale[0] / d, 0.0, 0.0,
 			0.0, 0.0, 1.0, 0.0,
@@ -85,14 +85,14 @@ void ParticleSystem::draw(BodyState const *base)
 void ParticleSystem::draw1()
 {
 	long const q = 5;//16;
-	double const dphi = 2.0 * M_PI / q;
+	Float const dphi = 2.0 * M_PI / q;
 	glBegin(GL_TRIANGLE_FAN);
 	glVertex2d(0.0, 0.0);
 	glColor4f(0.0, 0.0, 0.0, 1.0);
 	for(long k = 0; k != q; ++k)
 	{
-		double r = particle_size;
-		double phi = dphi * k;
+		Float r = particle_size;
+		Float phi = dphi * k;
 		glVertex2d(r * std::cos(phi), r * std::sin(phi));
 		glVertex2d(r * std::cos(phi + dphi), r * std::sin(phi + dphi));
 	}
@@ -101,32 +101,32 @@ void ParticleSystem::draw1()
 
 void ParticleSystem::colorize(Particle const &p)
 {
-	double y = std::atan(p.life) / M_PI;
+	Float y = std::atan(p.life) / M_PI;
 	glColor4f(y, y, y, 1.0);
 }
 
-Explosion::Explosion(World *world, PointState const &base, double power) :
+Explosion::Explosion(World *world, PointState const &base, Float power) :
 	ParticleSystem(world, 2.0),
 	base_vel(2.5 * std::pow(power, 0.25)),
 	base_life(0.5 * std::log(power + 1.0) + 0.1)
 {
 	auto seed = std::time(nullptr);
 	std::ranlux24 gen(seed);
-	static std::uniform_real_distribution<double> phi(-M_PI, M_PI);
-	static std::uniform_real_distribution<double> rad(0.0, 1.0);
-	std::uniform_real_distribution<double> vel(0.0, 2.0 * base_vel);
-	static std::uniform_real_distribution<double> dlife(0.9, 1.1);
+	static std::uniform_real_distribution<Float> phi(-M_PI, M_PI);
+	static std::uniform_real_distribution<Float> rad(0.0, 1.0);
+	std::uniform_real_distribution<Float> vel(0.0, 2.0 * base_vel);
+	static std::uniform_real_distribution<Float> dlife(0.9, 1.1);
 	while(power > 0)
 	{
 		Particle p;
-		double a = phi(gen);
-		double r = rad(gen);
+		Float a = phi(gen);
+		Float r = rad(gen);
 
-		double b = phi(gen);
-		double v = vel(gen);
+		Float b = phi(gen);
+		Float v = vel(gen);
 
-		p.pos = base.pos + r * Eigen::Vector2d{ std::cos(a), std::sin(a) };
-		p.vel = base.vel + v * Eigen::Vector2d{ std::cos(b), std::sin(b) };
+		p.pos = base.pos + r * Vector2{ std::cos(a), std::sin(a) };
+		p.vel = base.vel + v * Vector2{ std::cos(b), std::sin(b) };
 		p.value = base_vel / (v + 10.0);
 		p.life = base_life * (0.5 + 0.025 * v) * dlife(gen);
 		particles.push_back(p);
@@ -136,12 +136,12 @@ Explosion::Explosion(World *world, PointState const &base, double power) :
 
 void Explosion::colorize(Particle const &p)
 {
-	double v = p.value;
-	double w = std::pow(p.life / base_life, 3.0);
+	Float v = p.value;
+	Float w = std::pow(p.life / base_life, 3.0);
 	glColor4f(w, w * (3.0 * v - 1.0), w * (4.0 * v - 2.0), 1.0);
 }
 
-Jet::Jet(Ship *ship, Eigen::Vector2d shift, Eigen::Vector2d thrust):
+Jet::Jet(Ship *ship, Vector2 shift, Vector2 thrust):
 	ParticleSystem(ship, 0.5),
 	full_thrust(thrust.norm()),
 	base_vel(25.0),
@@ -166,26 +166,26 @@ void Jet::die()
 	ship = nullptr;
 }
 
-void Jet::move(double dt)
+void Jet::move(Float dt)
 {
 	ParticleSystem::move(dt);
 	static std::ranlux24 gen(std::time(nullptr));
-	static std::uniform_real_distribution<double> phi(-M_PI, M_PI);
-	std::uniform_real_distribution<double> dv(0.0, vel_spread);
-	std::uniform_real_distribution<double> dp(0.0, pos_spread);
-	std::uniform_real_distribution<double> ddt(-0.5 * dt, 0.5 * dt);
-	static std::uniform_real_distribution<double> dlife(0.9, 1.1);
+	static std::uniform_real_distribution<Float> phi(-M_PI, M_PI);
+	std::uniform_real_distribution<Float> dv(0.0, vel_spread);
+	std::uniform_real_distribution<Float> dp(0.0, pos_spread);
+	std::uniform_real_distribution<Float> ddt(-0.5 * dt, 0.5 * dt);
+	static std::uniform_real_distribution<Float> dlife(0.9, 1.1);
 	power = std::min(1.0, std::max(0.0, power));
 	energy += power * dt;
-	double dvel = std::sqrt(power);
+	Float dvel = std::sqrt(power);
 	while(energy > 0.0)
 	{
 		energy -= particle_energy;
 		Particle p;
 		p.pos = pos;
 		p.vel = dvel * part_vel;
-		double a = phi(gen);
-		double r = dv(gen);
+		Float a = phi(gen);
+		Float r = dv(gen);
 		p.vel[0] += r * std::cos(a);
 		p.vel[1] += r * std::sin(a);
 		a = phi(gen);
@@ -203,12 +203,12 @@ void Jet::move(double dt)
 
 void Jet::colorize(Particle const &p)
 {
-	double w = std::pow(p.life / base_life, 3.0);
-	double v = p.value * w / particle_energy;
+	Float w = std::pow(p.life / base_life, 3.0);
+	Float v = p.value * w / particle_energy;
 	glColor4f(2.5 * v, 2.5 * v - 1.0, 5.0 * v - 4.0, 1.0);
 }
 
-Beam::Beam(Ship *ship, Eigen::Vector2d shift, Eigen::Vector2d vel, double power, double range):
+Beam::Beam(Ship *ship, Vector2 shift, Vector2 vel, Float power, Float range):
 	ParticleSystem(ship, 0.5),
 	base_vel(vel.norm()),
 	base_life(range / base_vel),
@@ -236,26 +236,26 @@ void Beam::die()
 	ship = nullptr;
 }
 
-void Beam::move(double dt)
+void Beam::move(Float dt)
 {
 	ParticleSystem::move(dt);
 	static std::ranlux24 gen(std::time(nullptr));
-	static std::uniform_real_distribution<double> phi(-M_PI, M_PI);
-	std::uniform_real_distribution<double> dv(0.0, vel_spread);
-	std::uniform_real_distribution<double> dp(0.0, pos_spread);
-	std::uniform_real_distribution<double> ddt(-0.5 * dt, 0.5 * dt);
-	static std::uniform_real_distribution<double> dlife(0.9, 1.1);
+	static std::uniform_real_distribution<Float> phi(-M_PI, M_PI);
+	std::uniform_real_distribution<Float> dv(0.0, vel_spread);
+	std::uniform_real_distribution<Float> dp(0.0, pos_spread);
+	std::uniform_real_distribution<Float> ddt(-0.5 * dt, 0.5 * dt);
+	static std::uniform_real_distribution<Float> dlife(0.9, 1.1);
 	if(shots)
 		energy += power * dt;
-	double dvel = std::sqrt(power);
+	Float dvel = std::sqrt(power);
 	while(energy > 0.0)
 	{
 		energy -= particle_energy;
 		Particle p;
 		p.pos = pos;
 		p.vel = dvel * vel;
-		double a = phi(gen);
-		double r = dv(gen);
+		Float a = phi(gen);
+		Float r = dv(gen);
 		p.vel[0] += r * std::cos(a);
 		p.vel[1] += r * std::sin(a);
 		a = phi(gen);
@@ -273,7 +273,7 @@ void Beam::move(double dt)
 
 void Beam::colorize(Particle const &p)
 {
-	double w = std::pow(p.life / base_life, 3.0);
-	double v = p.value * w / particle_energy;
+	Float w = std::pow(p.life / base_life, 3.0);
+	Float v = p.value * w / particle_energy;
 	glColor4f(2.5 * v - 1.0, 5.0 * v - 4.0, 2.5 * v, 1.0);
 }

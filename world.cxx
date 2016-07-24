@@ -3,12 +3,12 @@
 #include "particles.hxx"
 #include "ship.hxx"
 
-World::World(double size):
+World::World(Float size):
 	manifold{size}
 {
 }
 
-void World::prepare(double step)
+void World::prepare(Float step)
 {
 	dt = step;
 	t += dt;
@@ -19,7 +19,7 @@ void World::prepare(double step)
 void World::collide()
 {
 // ship-ship collisions
-	static double const eps = 0.1;
+	static Float const eps = 0.1;
 	for(auto iter1 = ships.begin(); iter1 != ships.end(); )
 	{
 		auto pship1 = iter1++;
@@ -41,10 +41,10 @@ void World::collide()
 			}
 			// collided
 			manifold.remap(*ship1, *ship2);
-			double momentum = cinfo.collision_speed * ship1->mass * ship2->mass / (ship1->mass + ship2->mass);
-			double energy = 0.5 * cinfo.collision_speed * momentum;
-			double dv1 = -2 * cinfo.collision_speed * ship2->mass / (ship1->mass + ship2->mass);
-			double dv2 = 2 * cinfo.collision_speed * ship1->mass / (ship1->mass + ship2->mass);
+			Float momentum = cinfo.collision_speed * ship1->mass * ship2->mass / (ship1->mass + ship2->mass);
+			Float energy = 0.5 * cinfo.collision_speed * momentum;
+			Float dv1 = -2 * cinfo.collision_speed * ship2->mass / (ship1->mass + ship2->mass);
+			Float dv2 = 2 * cinfo.collision_speed * ship1->mass / (ship1->mass + ship2->mass);
 			ship1->vel += dv1 * cinfo.collision_direction;
 			ship2->vel += dv2 * cinfo.collision_direction;
 			ship1->hp -= 1e-3 * energy / ship1->armor;

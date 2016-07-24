@@ -1,4 +1,5 @@
 #pragma once
+#include "types.hxx"
 
-void vglTextOut(double x, double y, double size, double thickness, char const *text);
-void vglTextOutF(double x, double y, double size, double thickness, char const *text, ...);
+void vglTextOut(Float x, Float y, Float size, Float thickness, char const *text);
+void vglTextOutF(Float x, Float y, Float size, Float thickness, char const *text, ...);

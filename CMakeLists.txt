@@ -1,7 +1,8 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.1)
 project(einkleinflug)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMakeModules)
+cmake_policy(SET CMP0004 OLD)
+set(CMAKE_CXX_STANDARD 11)
 
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
@@ -20,7 +21,7 @@ add_executable(einkleinflug
 target_include_directories(einkleinflug PUBLIC
  	${PROJECT_SOURCE_DIR}/
 	${EIGEN3_INCLUDE_DIR}
-	${SDL2_INCLUDE_DIR}
+	${SDL2_INCLUDE_DIRS}
 	${OPENGL_INCLUDE_DIR}
 	${GLUT_INCLUDE_DIR}
 )
@@ -29,14 +30,3 @@ target_link_libraries(einkleinflug
 	${OPENGL_LIBRARIES}
 	${GLUT_LIBRARIES}
 )
-target_compile_definitions(einkleinflug PUBLIC
-	EIGEN_DONT_ALIGN
-)
-target_compile_options(einkleinflug PRIVATE
-	-Wno-deprecated-declarations
-)
-target_compile_features(einkleinflug PUBLIC
-	cxx_uniform_initialization
-)
-
-install(TARGETS einkleinflug RUNTIME DESTINATION bin)

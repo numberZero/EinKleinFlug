@@ -7,9 +7,9 @@ class Ship;
 
 struct Particle: PointState
 {
-// 	Eigen::Vector2d scale;
-	double life;
-	double value;
+// 	Vector2 scale;
+	Float life;
+	Float value;
 	bool left;
 };
 
@@ -24,15 +24,15 @@ public:
 	World *world;
 	Ship const *ship;
 	std::list<Particle> particles;
-	double const particle_size;
+	Float const particle_size;
 
-	ParticleSystem(Ship *base, double particle_size);
-	ParticleSystem(World *world, double particle_size);
+	ParticleSystem(Ship *base, Float particle_size);
+	ParticleSystem(World *world, Float particle_size);
 	~ParticleSystem();
 
 	virtual bool viable() const;
 
-	virtual void move(double dt);
+	virtual void move(Float dt);
 	void draw(BodyState const *base);
 
 	virtual void colorize(Particle const &p);
@@ -40,57 +40,57 @@ public:
 
 struct Explosion: ParticleSystem
 {
-	double const base_vel;
-	double const base_life;
-	Explosion(World *world, PointState const &base, double power = 200.0);
+	Float const base_vel;
+	Float const base_life;
+	Explosion(World *world, PointState const &base, Float power = 200.0);
 	void colorize(Particle const &p) override;
 };
 
 struct Jet: ParticleSystem
 {
 private:
-	double const full_thrust;
-	double const base_vel;
-	double const base_life;
-	double const pos_spread;
-	double const vel_spread;
-	double const size_fullpower;
-	double const particle_energy;
-	Eigen::Vector2d const part_vel;
-	double energy = 0.0;
+	Float const full_thrust;
+	Float const base_vel;
+	Float const base_life;
+	Float const pos_spread;
+	Float const vel_spread;
+	Float const size_fullpower;
+	Float const particle_energy;
+	Vector2 const part_vel;
+	Float energy = 0.0;
 
 public:
-	Eigen::Vector2d const pos;
-	Eigen::Vector2d const thrust;
-	double power = 0.0;
+	Vector2 const pos;
+	Vector2 const thrust;
+	Float power = 0.0;
 
-	Jet(Ship *ship, Eigen::Vector2d shift, Eigen::Vector2d thrust);
+	Jet(Ship *ship, Vector2 shift, Vector2 thrust);
 	bool viable() const override;
 	void die();
-	void move(double dt) override;
+	void move(Float dt) override;
 	void colorize(Particle const &p) override;
 };
 
 struct Beam: ParticleSystem
 {
 private:
-	double const base_vel;
-	double const base_life;
-	double const pos_spread;
-	double const vel_spread;
-	double const size_fullpower;
-	double const particle_energy;
-	double energy = 0.0;
+	Float const base_vel;
+	Float const base_life;
+	Float const pos_spread;
+	Float const vel_spread;
+	Float const size_fullpower;
+	Float const particle_energy;
+	Float energy = 0.0;
 
 public:
-	double const power;
-	Eigen::Vector2d const vel;
-	Eigen::Vector2d const pos;
+	Float const power;
+	Vector2 const vel;
+	Vector2 const pos;
 	bool shots = false;
 
-	Beam(Ship *ship, Eigen::Vector2d shift, Eigen::Vector2d vel, double power, double range);
+	Beam(Ship *ship, Vector2 shift, Vector2 vel, Float power, Float range);
 	bool viable() const override;
 	void die();
-	void move(double dt) override;
+	void move(Float dt) override;
 	void colorize(Particle const &p) override;
 };

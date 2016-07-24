@@ -4,7 +4,7 @@
 #include <GL/gl.h>
 #include <GL/glut.h>
 
-void vglTextOut(double x, double y, double size, double thickness, char const *text)
+void vglTextOut(Float x, Float y, Float size, Float thickness, char const *text)
 {
 	glLineWidth(thickness);
 	glPushMatrix();
@@ -15,7 +15,7 @@ void vglTextOut(double x, double y, double size, double thickness, char const *t
 	glPopMatrix();
 }
 
-void vglTextOutF(double x, double y, double size, double thickness, char const *text, ...)
+void vglTextOutF(Float x, Float y, Float size, Float thickness, char const *text, ...)
 {
 	static int const BUF_SIZE = 1024;
 	char buf[BUF_SIZE];

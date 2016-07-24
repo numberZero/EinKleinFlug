@@ -2,7 +2,6 @@
 #include <iostream>
 #include <list>
 #include <random>
-#include <Eigen/Core>
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include <SDL.h>
@@ -22,15 +21,15 @@ Beam *b = nullptr;
 int respawn_count = -1;
 
 static std::ranlux24 gen(std::time(nullptr));
-static std::uniform_real_distribution<double> pos(-world.manifold.radius, world.manifold.radius);
-static std::uniform_real_distribution<double> phi(-M_PI, M_PI);
-static std::uniform_real_distribution<double> vel(0.0, 7.0);
-static std::uniform_real_distribution<double> rvel(-0.2, 0.2);
+static std::uniform_real_distribution<Float> pos(-world.manifold.radius, world.manifold.radius);
+static std::uniform_real_distribution<Float> phi(-M_PI, M_PI);
+static std::uniform_real_distribution<Float> vel(0.0, 7.0);
+static std::uniform_real_distribution<Float> rvel(-0.2, 0.2);
 
 void respawn()
 {
-	double a = phi(gen);
-	double v = vel(gen);
+	Float a = phi(gen);
+	Float v = vel(gen);
 	++respawn_count;
 	me = new Ship(&world, 20.0, 20.0);
 	me->prepare();
@@ -53,8 +52,8 @@ void init()
 	for(int k = 0; k != 24; ++k)
 	{
 		Ship *obj = new Ship(&world);
-		double a = phi(gen);
-		double v = vel(gen);
+		Float a = phi(gen);
+		Float v = vel(gen);
 		obj->mirror = false;
 		obj->pos = { pos(gen), pos(gen) };
 		obj->vel = { v * std::cos(a), v * std::sin(a) };
@@ -66,11 +65,11 @@ void init()
 	}
 }
 
-double advanceFrameRateCounter(double dt)
+Float advanceFrameRateCounter(Float dt)
 {
 	long static frames = 0;
-	double static time = 0.0;
-	double static rate = 0.0;
+	Float static time = 0.0;
+	Float static rate = 0.0;
 	++frames;
 	time += dt;
 	if(time >= 1.0)
@@ -84,13 +83,13 @@ double advanceFrameRateCounter(double dt)
 
 void step()
 {
-	static double const scale = 10.0;
-	static double const rate_min = 30.0;
-	static double const dt_max = 1.0 / rate_min;
+	static Float const scale = 10.0;
+	static Float const rate_min = 30.0;
+	static Float const dt_max = 1.0 / rate_min;
 	long const t_now = SDL_GetTicks();
-	double const t = 0.001 * t_now;
-	double const dt = 0.001 * (t_now - t_base);
-	double const fps = advanceFrameRateCounter(dt);
+	Float const t = 0.001 * t_now;
+	Float const dt = 0.001 * (t_now - t_base);
+	Float const fps = advanceFrameRateCounter(dt);
 	bool const slow = dt > dt_max;
 	t_base = t_now;
 
@@ -100,14 +99,14 @@ void step()
 	bool down = keys[SDL_SCANCODE_DOWN];
 	bool left = keys[SDL_SCANCODE_LEFT];
 	bool right = keys[SDL_SCANCODE_RIGHT];
-	double const p_base = 1.0;
-	double const p_rot = 0.05;
-	double const p_stab = p_rot;
-	double p_left 	= (up ? p_base : 0.0) + (down ? -p_base : 0.0) + (left ? -p_rot : 0.0) + (right ? p_rot : 0.0);
-	double p_right 	= (up ? p_base : 0.0) + (down ? -p_base : 0.0) + (left ? p_rot : 0.0) + (right ? -p_rot : 0.0);
+	Float const p_base = 1.0;
+	Float const p_rot = 0.05;
+	Float const p_stab = p_rot;
+	Float p_left 	= (up ? p_base : 0.0) + (down ? -p_base : 0.0) + (left ? -p_rot : 0.0) + (right ? p_rot : 0.0);
+	Float p_right 	= (up ? p_base : 0.0) + (down ? -p_base : 0.0) + (left ? p_rot : 0.0) + (right ? -p_rot : 0.0);
 	if(stabilize)
 	{
-		static double const eps = 0.01;
+		static Float const eps = 0.01;
 		left = false;
 		right = false;
 		if(me->rvel > eps)
@@ -149,18 +148,18 @@ void step()
 	glBegin(GL_LINES);
 	for(long k = 0; k != 32; ++k)
 	{
-		double r = 1.3 * me->radius;
-		double phi = M_PI / 16.0 * k;
+		Float r = 1.3 * me->radius;
+		Float phi = M_PI / 16.0 * k;
 		glVertex2d(r * std::cos(phi), r * std::sin(phi));
 	}
 	glEnd();
 
 	glLoadIdentity();
-	double x = -390.0;
-	double y = 300.0;
-	double dy = 20.0;
-	double w = 1.0;
-	double h = 14.0;
+	Float x = -390.0;
+	Float y = 300.0;
+	Float dy = 20.0;
+	Float w = 1.0;
+	Float h = 14.0;
 	glColor4f(0.0, 1.0, 0.0, 0.7);
 	vglTextOutF(x, y -= dy, h, w, "FPS: %.1f", fps);
 	vglTextOutF(x, y -= dy, h, w, "Respawns: %d", respawn_count);

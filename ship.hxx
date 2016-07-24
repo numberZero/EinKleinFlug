@@ -12,13 +12,13 @@ private:
 	void draw_model();
 
 public:
-	Ship(World *world, double hp = 10.0, double armor = 7.0);
+	Ship(World *world, Float hp = 10.0, Float armor = 7.0);
 
-	double const recharge_rate = 0.5;
-	double const max_hp;
+	Float const recharge_rate = 0.5;
+	Float const max_hp;
 	Jet *jets[4];
-	double hp;
-	double armor;
+	Float hp;
+	Float armor;
 
 	bool viable() const;
 	void die();

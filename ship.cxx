@@ -4,7 +4,7 @@
 #include "text.hxx"
 #include "world.hxx"
 
-Ship::Ship(World *world, double hp, double armor) :
+Ship::Ship(World *world, Float hp, Float armor) :
 	Body(world),
 	max_hp(hp),
 	hp(hp),
@@ -36,8 +36,8 @@ void Ship::move()
 	Eigen::Matrix2d rot = world->manifold.absolutizationMatrix(*this);
 	for(int k = 0; k != 4; ++k)
 	{
-		Eigen::Vector2d shift = rot * jets[k]->pos;
-		Eigen::Vector2d thrust = jets[k]->power * rot * jets[k]->thrust;
+		Vector2 shift = rot * jets[k]->pos;
+		Vector2 thrust = jets[k]->power * rot * jets[k]->thrust;
 		force += thrust;
 		rforce += shift[0] * thrust[1] - shift[1] * thrust[0];
 	}
@@ -63,7 +63,7 @@ void Ship::draw(BodyState const *base)
 
 void Ship::draw_info()
 {
-	double hpp = hp / max_hp;
+	Float hpp = hp / max_hp;
 	glColor4f(2.0 * (1.0 - hpp), 2.0 * hpp, 0.0, 1.0);
 	glBegin(GL_QUADS);
 	glVertex2d(-3.0, -4.5);
@@ -119,14 +119,14 @@ void Ship::draw_model()
 	glVertex2d(0.0, -2.6);
 	glEnd();
 
-	double const b = 0.8 + 0.2 * std::sin(5.0 * world->t);
+	Float const b = 0.8 + 0.2 * std::sin(5.0 * world->t);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	glBegin(GL_QUAD_STRIP);
 	for(long k = 0; k != q + 1; ++k)
 	{
-		double r1 = radius * 0.85;
-		double r2 = radius * 1.0;
-		double phi = 2.0 * M_PI / q * k;
+		Float r1 = radius * 0.85;
+		Float r2 = radius * 1.0;
+		Float phi = 2.0 * M_PI / q * k;
 		glColor4f(0.0, 1.0, b, 0.0);
 		glVertex2d(r1 * std::cos(phi), r1 * std::sin(phi));
 		glColor4f(0.0, 1.0, b, 0.7);

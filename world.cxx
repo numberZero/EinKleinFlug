@@ -3,14 +3,17 @@
 #include "particles.hxx"
 #include "ship.hxx"
 
+void CEntity::step()
+{
+}
+
 World::World(Float size):
 	manifold{size}
 {
 }
 
-void World::prepare(Float step)
+void World::prepare()
 {
-	dt = step;
 	t += dt;
 	for(Ship *ship: ships)
 		ship->prepare();
@@ -109,6 +112,15 @@ void World::move()
 		ship->move();
 	for(ParticleSystem *parts: particles)
 		parts->move(dt);
+	for(auto iter = entities.begin(); iter != entities.end(); )
+	{
+		auto pentity = iter++;
+		std::shared_ptr<CEntity> entity(pentity->lock());
+		if(entity)
+			entity->step();
+		else
+			entities.erase(pentity);
+	}
 }
 
 void World::draw(Ship const *base)

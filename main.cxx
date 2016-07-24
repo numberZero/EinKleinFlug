@@ -65,11 +65,19 @@ void init()
 	}
 }
 
-Float advanceFrameRateCounter(Float dt)
+class FPSCounter
 {
-	long static frames = 0;
-	Float static time = 0.0;
-	Float static rate = 0.0;
+	long frames = 0;
+	Float time = 0.0;
+	Float rate = 0.0;
+
+public:
+	void advance(Float dt);
+	Float value() const;
+};
+
+void FPSCounter::advance(Float dt)
+{
 	++frames;
 	time += dt;
 	if(time >= 1.0)
@@ -78,21 +86,20 @@ Float advanceFrameRateCounter(Float dt)
 		frames = 0;
 		time = 0;
 	}
+}
+
+Float FPSCounter::value() const
+{
 	return rate;
 }
 
-void step()
-{
-	static Float const scale = 10.0;
-	static Float const rate_min = 30.0;
-	static Float const dt_max = 1.0 / rate_min;
-	long const t_now = SDL_GetTicks();
-	Float const t = 0.001 * t_now;
-	Float const dt = 0.001 * (t_now - t_base);
-	Float const fps = advanceFrameRateCounter(dt);
-	bool const slow = dt > dt_max;
-	t_base = t_now;
+static FPSCounter fps_draw;
+static FPSCounter fps_model;
+static bool st_slow = false;
+static bool st_stabilizing = false;
 
+void control()
+{
 	bool stabilize = keys[SDL_SCANCODE_S];
 	bool shot = keys[SDL_SCANCODE_SPACE];
 	bool up = keys[SDL_SCANCODE_UP];
@@ -104,6 +111,7 @@ void step()
 	Float const p_stab = p_rot;
 	Float p_left 	= (up ? p_base : 0.0) + (down ? -p_base : 0.0) + (left ? -p_rot : 0.0) + (right ? p_rot : 0.0);
 	Float p_right 	= (up ? p_base : 0.0) + (down ? -p_base : 0.0) + (left ? p_rot : 0.0) + (right ? -p_rot : 0.0);
+	st_stabilizing = stabilize;
 	if(stabilize)
 	{
 		static Float const eps = 0.01;
@@ -120,19 +128,18 @@ void step()
 			p_right += p_stab;
 		}
 		else
-			stabilize = false;
+			st_stabilizing = false;
 	}
 	me->jets[0]->power = p_left > 0 ? p_left : 0.0;
 	me->jets[1]->power = p_right > 0 ? p_right : 0.0;
 	me->jets[2]->power = p_left < 0 ? -p_left : 0.0;
 	me->jets[3]->power = p_right < 0 ? -p_right : 0.0;
 	b->shots = shot;
+}
 
-	world.prepare(slow ? dt_max : dt);
-	world.collide();
-	if(!me->viable())
-		respawn();
-	world.cleanup();
+void draw()
+{
+	static Float const scale = 10.0;
 
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -161,7 +168,7 @@ void step()
 	Float w = 1.0;
 	Float h = 14.0;
 	glColor4f(0.0, 1.0, 0.0, 0.7);
-	vglTextOutF(x, y -= dy, h, w, "FPS: %.1f", fps);
+	vglTextOutF(x, y -= dy, h, w, "FPS: %.1f / %.1f", fps_draw.value(), fps_model.value());
 	vglTextOutF(x, y -= dy, h, w, "Respawns: %d", respawn_count);
 	vglTextOutF(x, y -= dy, h, w, "Ships: %d", world.ships.size());
 	vglTextOutF(x, y -= dy, h, w, "Particle systems: %d", world.particles.size());
@@ -169,9 +176,9 @@ void step()
 #ifndef NDEBUG
 	vglTextOutF(x, y -= dy, h, w, "Position: (%.1f, %.1f, %s)", me->pos[0], me->pos[1], me->mirror ? "positive" : "negative");
 #endif
-	if(stabilize)
+	if(st_stabilizing)
 		vglTextOutF(x, y -= dy, h, w, "Stabilizing");
-	if(slow)
+	if(st_slow)
 	{
 		glColor4f(1.0, 0.0, 0.0, 0.7);
 		vglTextOutF(x, y -= dy, h, w, "Lag");
@@ -180,8 +187,42 @@ void step()
 	glFlush();
 	glFinish();
 	SDL_GL_SwapWindow(window);
+}
 
-	world.move();
+void step()
+{
+	long const t_now = SDL_GetTicks();
+	Float const t = 0.001 * t_now;
+	Float const dt = 0.001 * (t_now - t_base);
+	static Float t_add = 0.0;
+	t_add += dt;
+	bool const move = t_add > 0;
+	st_slow = t_add > world.dt;
+	t_base = t_now;
+
+	fps_draw.advance(dt);
+
+	if(move)
+	{
+		double t_add_old = t_add;
+		t_add -= world.dt;
+		if(t_add > 0)
+			t_add = 0;
+		fps_model.advance(t_add_old - t_add);
+		world.prepare();
+		world.collide();
+		if(!me->viable())
+			respawn();
+		world.cleanup();
+	}
+
+	draw();
+
+	if(move)
+	{
+		control();
+		world.move();
+	}
 }
 
 bool events()
@@ -217,6 +258,7 @@ void initSDL()
 	window = SDL_CreateWindow("Ein Klein Flug", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_OPENGL);
 	context = SDL_GL_CreateContext(window);
 	SDL_GL_MakeCurrent(window, context);
+	SDL_GL_SetSwapInterval(-1);
 	t_base = SDL_GetTicks();
 }
 

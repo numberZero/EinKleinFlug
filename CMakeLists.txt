@@ -16,6 +16,8 @@ add_executable(einkleinflug
 	particles/particles.cxx
 	ship.cxx
 	text.cxx
+	weapon/control.cxx
+	weapon/types.cxx
 	world.cxx
 )
 target_compile_definitions(einkleinflug PRIVATE

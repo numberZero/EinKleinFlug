@@ -10,23 +10,19 @@ struct Particle: PointState
 // 	Vector2 scale;
 	Float life;
 	Float value;
-	bool left;
 };
 
 struct ParticleSystem
 {
 private:
 	unsigned drawlist;
-	void init();
 	void draw1();
 
 public:
 	World *world;
-	Ship const *ship;
 	std::list<Particle> particles;
 	Float const particle_size;
 
-	ParticleSystem(Ship *base, Float particle_size);
 	ParticleSystem(World *world, Float particle_size);
 	~ParticleSystem();
 
@@ -60,6 +56,7 @@ private:
 	Float energy = 0.0;
 
 public:
+	Ship const *ship;
 	Vector2 const pos;
 	Vector2 const thrust;
 	Float power = 0.0;
@@ -83,6 +80,7 @@ private:
 	Float energy = 0.0;
 
 public:
+	Ship const *ship;
 	Float const power;
 	Vector2 const vel;
 	Vector2 const pos;

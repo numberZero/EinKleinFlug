@@ -5,34 +5,20 @@
 #include "ship.hxx"
 #include "world.hxx"
 
-ParticleSystem::ParticleSystem(Ship *base, Float particle_size) :
-	world(base->world),
-	ship(base),
-	particle_size(particle_size)
-{
-	init();
-}
-
 ParticleSystem::ParticleSystem(World *world, Float particle_size) :
 	world(world),
-	ship(nullptr),
 	particle_size(particle_size)
-{
-	init();
-}
-
-ParticleSystem::~ParticleSystem()
-{
-	glDeleteLists(drawlist, 1);
-}
-
-void ParticleSystem::init()
 {
 	world->particles.insert(this);
 	drawlist = glGenLists(1);
 	glNewList(drawlist, GL_COMPILE);
 	draw1();
 	glEndList();
+}
+
+ParticleSystem::~ParticleSystem()
+{
+	glDeleteLists(drawlist, 1);
 }
 
 bool ParticleSystem::viable() const
@@ -142,7 +128,7 @@ void Explosion::colorize(Particle const &p)
 }
 
 Jet::Jet(Ship *ship, Vector2 shift, Vector2 thrust):
-	ParticleSystem(ship, 0.5),
+	ParticleSystem(ship->world, 0.5),
 	full_thrust(thrust.norm()),
 	base_vel(25.0),
 	base_life(0.4),
@@ -151,6 +137,7 @@ Jet::Jet(Ship *ship, Vector2 shift, Vector2 thrust):
 	size_fullpower(150.0),
 	particle_energy(base_life / size_fullpower),
 	part_vel(-base_vel / full_thrust * thrust),
+	ship(ship),
 	pos(shift),
 	thrust(thrust)
 {
@@ -195,7 +182,6 @@ void Jet::move(Float dt)
 		p.pos += ddt(gen) * p.vel;
 		p.value = particle_energy * p.vel.dot(part_vel) / (dvel * base_vel * base_vel);
 		p.life = dlife(gen) * base_life * p.value / particle_energy;
-		p.left = !ship;
 		world->manifold.absolutize(*ship, p);
 		particles.push_back(p);
 	}
@@ -209,13 +195,14 @@ void Jet::colorize(Particle const &p)
 }
 
 Beam::Beam(Ship *ship, Vector2 shift, Vector2 vel, Float power, Float range):
-	ParticleSystem(ship, 0.5),
+	ParticleSystem(ship->world, 0.5),
 	base_vel(vel.norm()),
 	base_life(range / base_vel),
 	pos_spread(0.7),
 	vel_spread(0.07 * base_vel),
 	size_fullpower(800.0 * power),
 	particle_energy(base_life * power / size_fullpower),
+	ship(ship),
 	pos(shift),
 	vel(vel),
 	power(power)
@@ -265,7 +252,6 @@ void Beam::move(Float dt)
 		p.pos += ddt(gen) * p.vel;
 		p.value = particle_energy * p.vel.dot(vel) / (dvel * base_vel * base_vel);
 		p.life = dlife(gen) * base_life * p.value / particle_energy;
-		p.left = !ship;
 		world->manifold.absolutize(*ship, p);
 		particles.push_back(p);
 	}

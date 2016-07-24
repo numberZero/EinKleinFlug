@@ -64,17 +64,15 @@ void World::collide()
 				auto ppart = iter++;
 				Particle &part = *ppart;
 				PointState pt(part);
-				if(manifold.distance(*ship, pt) < ship->radius)
+				manifold.remap(*ship, pt);
+				Vector2 relpos = pt.pos - ship->pos;
+				if(relpos.norm() < ship->radius)
 				{
-					if(ps->ship == ship && !part.left)
+					Vector2 relvel = pt.vel - ship->vel;
+					if(relvel.dot(relpos) > 0) // moves away
 						continue;
 					ship->hp -= part.value;
 					ps->particles.erase(ppart);
-				}
-				else
-				{
-					if(ps->ship == ship)
-						part.left = true;
 				}
 			}
 		}

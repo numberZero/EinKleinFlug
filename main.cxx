@@ -43,7 +43,7 @@ void respawn()
 	me->rinertia = 5000.0;
 	if(b)
 		b->die();
-	b = new Beam(me, {0.0, 3.0}, {0.0, 20.0}, 20.0, 200.0);
+	b = new Beam(me, {0.0, 3.0}, {0.0, 150.0}, 20.0, 300.0);
 }
 
 void init()
@@ -107,7 +107,7 @@ void control()
 	bool left = keys[SDL_SCANCODE_LEFT];
 	bool right = keys[SDL_SCANCODE_RIGHT];
 	Float const p_base = 1.0;
-	Float const p_rot = 0.05;
+	Float const p_rot = 0.1;
 	Float const p_stab = p_rot;
 	Float p_left 	= (up ? p_base : 0.0) + (down ? -p_base : 0.0) + (left ? -p_rot : 0.0) + (right ? p_rot : 0.0);
 	Float p_right 	= (up ? p_base : 0.0) + (down ? -p_base : 0.0) + (left ? p_rot : 0.0) + (right ? -p_rot : 0.0);

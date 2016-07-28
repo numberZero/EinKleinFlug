@@ -18,6 +18,9 @@ add_executable(einkleinflug
 	text.cxx
 	world.cxx
 )
+target_compile_definitions(einkleinflug PRIVATE
+	GL_GLEXT_PROTOTYPES
+)
 target_include_directories(einkleinflug PUBLIC
  	${PROJECT_SOURCE_DIR}/
 	${EIGEN3_INCLUDE_DIR}

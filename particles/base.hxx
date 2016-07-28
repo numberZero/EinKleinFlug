@@ -13,8 +13,10 @@ struct Particle: PointState
 struct ParticleSystem
 {
 private:
-	unsigned drawlist;
-	void draw1();
+#ifdef USE_SHADERS
+	unsigned vertex_array;
+	unsigned vertex_buffer;
+#endif
 
 public:
 	World *world;

@@ -1,25 +1,91 @@
 #include "types.hxx"
+#include <cstddef>
 #include <ctime>
 #include <random>
 #include <GL/gl.h>
+#include <GL/glext.h>
 #include "ship.hxx"
 #include "world.hxx"
+
+struct Vertex
+{
+	GLfloat position[2];
+	GLshort texture[2];
+	Color color;
+};
+
+struct ParticleTexture
+{
+private:
+	GLuint id = 0;
+	void generate();
+
+public:
+	operator GLuint();
+} texture;
+
+void ParticleTexture::generate()
+{
+	glGenTextures(1, &id);
+	glBindTexture(GL_TEXTURE_2D, id);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	int const w = 16;
+	int const r = w / 2;
+	float const c = 2.0 / (w - 2);
+	float *data = new float[w * w];
+	float *pix = data;
+	for(int j = -r; j != r; ++j)
+		for(int i = -r; i != r; ++i)
+		{
+			float u = c * i;
+			float v = c * j;
+			float result = 0.0;
+			float dist_squared = u * u + v * v;
+			if(dist_squared < 1.0)
+				result = 1.0 - std::sqrt(dist_squared);
+			*(pix++) = result;
+		}
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, w, w, 0, GL_RED, GL_FLOAT, data);
+	GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_RED};
+	glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+	delete[] data;
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+ParticleTexture::operator GLuint()
+{
+	if(!id)
+		generate();
+	return id;
+}
+
 
 ParticleSystem::ParticleSystem(World *world, Float particle_size) :
 	world(world),
 	particle_size(particle_size)
 {
 	world->particles.insert(this);
-
-	drawlist = glGenLists(1);
-	glNewList(drawlist, GL_COMPILE);
-	draw1();
-	glEndList();
+#ifdef USE_SHADERS
+	glGenBuffers(1, &vertex_buffer);
+	glGenVertexArrays(1, &vertex_array);
+	glBindVertexArray(1);
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vertex_buffer);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, position)));
+	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, color)));
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+#endif
 }
 
 ParticleSystem::~ParticleSystem()
 {
-	glDeleteLists(drawlist, 1);
+#ifdef USE_SHADERS
+	glDeleteVertexArrays(1, &vertex_array);
+	glDeleteBuffers(1, &vertex_buffer);
+#endif
 }
 
 bool ParticleSystem::viable() const
@@ -41,50 +107,88 @@ void ParticleSystem::move(Float dt)
 
 void ParticleSystem::draw(BodyState const *base)
 {
+	if(particles.empty())
+		return;
+	Float const r = particle_size;
+#ifdef USE_SHADERS
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vertex_buffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 0, nullptr, GL_STREAM_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Vertex) * 4 * particles.size(), nullptr, GL_STREAM_DRAW);
+	Vertex *v = reinterpret_cast<Vertex *>(glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY));
+	if(!v)
+		throw std::runtime_error("Can’t draw the particle system: can’t map the vertex buffer");
+#else
+	Vertex *vbuf = new Vertex[4 * particles.size()];
+	Vertex *v = vbuf;
+#endif
+	for(Particle const &part: particles)
+	{
+		PointState pt = part;
+		world->manifold.remap(*base, pt);
+		Float const x = pt.pos[0];
+		Float const y = pt.pos[1];
+		Color c = getColor(part);
+		v->color = c;
+		v->position[0] = x - r;
+		v->position[1] = y - r;
+		v->texture[0] = 0;
+		v->texture[1] = 0;
+		++v;
+		v->color = c;
+		v->position[0] = x + r;
+		v->position[1] = y - r;
+		v->texture[0] = 1;
+		v->texture[1] = 0;
+		++v;
+		v->color = c;
+		v->position[0] = x + r;
+		v->position[1] = y + r;
+		v->texture[0] = 1;
+		v->texture[1] = 1;
+		++v;
+		v->color = c;
+		v->position[0] = x - r;
+		v->position[1] = y + r;
+		v->texture[0] = 0;
+		v->texture[1] = 1;
+		++v;
+	}
+#ifdef USE_SHADERS
+	glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+#endif
+
 	glPushMatrix();
 	glRotated(-180.0 / M_PI * base->rpos, 0.0, 0.0, 1.0);
 	if(base->mirror)
 		glScaled(-1.0, 1.0, 1.0);
 	glTranslated(-base->pos[0], -base->pos[1], 0.0);
-	for(Particle const &part: particles)
-	{
-		PointState pt = part;
-		world->manifold.remap(*base, pt);
-		glPushMatrix();
-		glTranslated(pt.pos[0], pt.pos[1], 0.0);
-/*
-		Float d = part.scale.squaredNorm();
-		Float m[16] = {
-			part.scale[0], part.scale[1], 0.0, 0.0,
-			-part.scale[1] / d, part.scale[0] / d, 0.0, 0.0,
-			0.0, 0.0, 1.0, 0.0,
-			0.0, 0.0, 0.0, 1.0,
-		};
-		glMultMatrixd(m);
-*/
-		Color c = getColor(part);
-		glColor4ubv(c.data);
-		glCallList(drawlist);
-		glPopMatrix();
-	}
-	glPopMatrix();
-}
 
-void ParticleSystem::draw1()
-{
-	long const q = 5;//16;
-	Float const dphi = 2.0 * M_PI / q;
-	glBegin(GL_TRIANGLE_FAN);
-	glVertex2d(0.0, 0.0);
-	glColor4f(0.0, 0.0, 0.0, 1.0);
-	for(long k = 0; k != q; ++k)
-	{
-		Float r = particle_size;
-		Float phi = dphi * k;
-		glVertex2d(r * std::cos(phi), r * std::sin(phi));
-		glVertex2d(r * std::cos(phi + dphi), r * std::sin(phi + dphi));
-	}
-	glEnd();
+#ifdef USE_SHADERS
+	glBindVertexArray(1);
+	glDrawArrays(GL_QUADS, 0, particles.size());
+	glBindVertexArray(0);
+#else
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(2, GL_FLOAT, sizeof(Vertex), &vbuf->position);
+	glEnableClientState(GL_COLOR_ARRAY);
+	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), &vbuf->color);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glTexCoordPointer(2, GL_SHORT, sizeof(Vertex), &vbuf->texture);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glDrawArrays(GL_QUADS, 0, 4 * particles.size());
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glBindTexture(GL_TEXTURE_2D, 0);
+#endif
+
+	glPopMatrix();
+
+#ifndef USE_SHADERS
+	delete[] vbuf;
+#endif
 }
 
 Color ParticleSystem::getColor(Particle const &p)
@@ -136,7 +240,7 @@ Jet::Jet(Ship *ship, Vector2 shift, Vector2 thrust):
 	base_life(0.4),
 	pos_spread(0.2),
 	vel_spread(0.2 * base_vel),
-	size_fullpower(150.0),
+	size_fullpower(250.0),
 	particle_energy(base_life / size_fullpower),
 	part_vel(-base_vel / full_thrust * thrust),
 	ship(ship),
@@ -197,12 +301,12 @@ Color Jet::getColor(Particle const &p)
 }
 
 Beam::Beam(Ship *ship, Vector2 shift, Vector2 vel, Float power, Float range):
-	ParticleSystem(ship->world, 0.5),
+	ParticleSystem(ship->world, 0.4),
 	base_vel(vel.norm()),
 	base_life(range / base_vel),
-	pos_spread(0.7),
-	vel_spread(0.07 * base_vel),
-	size_fullpower(800.0 * power),
+	pos_spread(0.3),
+	vel_spread(0.04 * base_vel),
+	size_fullpower(400.0 * power),
 	particle_energy(base_life * power / size_fullpower),
 	ship(ship),
 	pos(shift),
@@ -236,13 +340,12 @@ void Beam::move(Float dt)
 	static std::uniform_real_distribution<Float> dlife(0.9, 1.1);
 	if(shots)
 		energy += power * dt;
-	Float dvel = std::sqrt(power);
 	while(energy > 0.0)
 	{
 		energy -= particle_energy;
 		Particle p;
 		p.pos = pos;
-		p.vel = dvel * vel;
+		p.vel = vel;
 		Float a = phi(gen);
 		Float r = dv(gen);
 		p.vel[0] += r * std::cos(a);
@@ -252,7 +355,7 @@ void Beam::move(Float dt)
 		p.pos[0] += r * std::cos(a);
 		p.pos[1] += r * std::sin(a);
 		p.pos += ddt(gen) * p.vel;
-		p.value = particle_energy * p.vel.dot(vel) / (dvel * base_vel * base_vel);
+		p.value = particle_energy * p.vel.dot(vel) / (base_vel * base_vel);
 		p.life = dlife(gen) * base_life * p.value / particle_energy;
 		world->manifold.absolutize(*ship, p);
 		particles.push_back(p);

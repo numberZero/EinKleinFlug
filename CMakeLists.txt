@@ -13,7 +13,7 @@ add_executable(einkleinflug
 	body.cxx
 	main.cxx
 	manifold.cxx
-	particles.cxx
+	particles/particles.cxx
 	ship.cxx
 	text.cxx
 	world.cxx

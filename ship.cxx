@@ -1,6 +1,6 @@
 #include "ship.hxx"
 #include <GL/gl.h>
-#include "particles.hxx"
+#include "particles/types.hxx"
 #include "text.hxx"
 #include "world.hxx"
 

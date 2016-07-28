@@ -1,4 +1,4 @@
-#include "particles.hxx"
+#include "types.hxx"
 #include <ctime>
 #include <random>
 #include <GL/gl.h>
@@ -10,6 +10,7 @@ ParticleSystem::ParticleSystem(World *world, Float particle_size) :
 	particle_size(particle_size)
 {
 	world->particles.insert(this);
+
 	drawlist = glGenLists(1);
 	glNewList(drawlist, GL_COMPILE);
 	draw1();
@@ -61,7 +62,8 @@ void ParticleSystem::draw(BodyState const *base)
 		};
 		glMultMatrixd(m);
 */
-		colorize(part);
+		Color c = getColor(part);
+		glColor4ubv(c.data);
 		glCallList(drawlist);
 		glPopMatrix();
 	}
@@ -85,10 +87,10 @@ void ParticleSystem::draw1()
 	glEnd();
 }
 
-void ParticleSystem::colorize(Particle const &p)
+Color ParticleSystem::getColor(Particle const &p)
 {
 	Float y = std::atan(p.life) / M_PI;
-	glColor4f(y, y, y, 1.0);
+	return Color(y, y, y, 1.0);
 }
 
 Explosion::Explosion(World *world, PointState const &base, Float power) :
@@ -120,11 +122,11 @@ Explosion::Explosion(World *world, PointState const &base, Float power) :
 	}
 }
 
-void Explosion::colorize(Particle const &p)
+Color Explosion::getColor(Particle const &p)
 {
 	Float v = p.value;
 	Float w = std::pow(p.life / base_life, 3.0);
-	glColor4f(w, w * (3.0 * v - 1.0), w * (4.0 * v - 2.0), 1.0);
+	return Color(w, w * (3.0 * v - 1.0), w * (4.0 * v - 2.0));
 }
 
 Jet::Jet(Ship *ship, Vector2 shift, Vector2 thrust):
@@ -187,11 +189,11 @@ void Jet::move(Float dt)
 	}
 }
 
-void Jet::colorize(Particle const &p)
+Color Jet::getColor(Particle const &p)
 {
 	Float w = std::pow(p.life / base_life, 3.0);
 	Float v = p.value * w / particle_energy;
-	glColor4f(2.5 * v, 2.5 * v - 1.0, 5.0 * v - 4.0, 1.0);
+	return Color(2.5 * v, 2.5 * v - 1.0, 5.0 * v - 4.0);
 }
 
 Beam::Beam(Ship *ship, Vector2 shift, Vector2 vel, Float power, Float range):
@@ -257,9 +259,9 @@ void Beam::move(Float dt)
 	}
 }
 
-void Beam::colorize(Particle const &p)
+Color Beam::getColor(Particle const &p)
 {
 	Float w = std::pow(p.life / base_life, 3.0);
 	Float v = p.value * w / particle_energy;
-	glColor4f(2.5 * v - 1.0, 5.0 * v - 4.0, 2.5 * v, 1.0);
+	return Color(2.5 * v - 1.0, 5.0 * v - 4.0, 2.5 * v);
 }

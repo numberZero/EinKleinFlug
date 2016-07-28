@@ -1,45 +1,14 @@
 #pragma once
-#include <list>
-#include "manifold.hxx"
+#include "base.hxx"
 
-class World;
 class Ship;
-
-struct Particle: PointState
-{
-// 	Vector2 scale;
-	Float life;
-	Float value;
-};
-
-struct ParticleSystem
-{
-private:
-	unsigned drawlist;
-	void draw1();
-
-public:
-	World *world;
-	std::list<Particle> particles;
-	Float const particle_size;
-
-	ParticleSystem(World *world, Float particle_size);
-	~ParticleSystem();
-
-	virtual bool viable() const;
-
-	virtual void move(Float dt);
-	void draw(BodyState const *base);
-
-	virtual void colorize(Particle const &p);
-};
 
 struct Explosion: ParticleSystem
 {
 	Float const base_vel;
 	Float const base_life;
 	Explosion(World *world, PointState const &base, Float power = 200.0);
-	void colorize(Particle const &p) override;
+	Color getColor(Particle const &particle) override;
 };
 
 struct Jet: ParticleSystem
@@ -65,7 +34,7 @@ public:
 	bool viable() const override;
 	void die();
 	void move(Float dt) override;
-	void colorize(Particle const &p) override;
+	Color getColor(Particle const &particle) override;
 };
 
 struct Beam: ParticleSystem
@@ -90,5 +59,5 @@ public:
 	bool viable() const override;
 	void die();
 	void move(Float dt) override;
-	void colorize(Particle const &p) override;
+	Color getColor(Particle const &particle) override;
 };

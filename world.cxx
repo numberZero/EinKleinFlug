@@ -1,6 +1,6 @@
 #include "world.hxx"
 #include <GL/gl.h>
-#include "particles.hxx"
+#include "particles/types.hxx"
 #include "ship.hxx"
 
 void CEntity::step()

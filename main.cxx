@@ -5,7 +5,7 @@
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include <SDL.h>
-#include "particles.hxx"
+#include "particles/types.hxx"
 #include "ship.hxx"
 #include "text.hxx"
 #include "world.hxx"

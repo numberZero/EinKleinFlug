@@ -3,7 +3,10 @@
 #include "particles/types.hxx"
 #include "ship.hxx"
 
-void CEntity::step()
+constexpr Float const World::frame_rate;
+constexpr Float const World::dt;
+
+void CObject::step()
 {
 }
 
@@ -113,7 +116,7 @@ void World::move()
 	for(auto iter = entities.begin(); iter != entities.end(); )
 	{
 		auto pentity = iter++;
-		std::shared_ptr<CEntity> entity(pentity->lock());
+		std::shared_ptr<CObject> entity(pentity->lock());
 		if(entity)
 			entity->step();
 		else

@@ -16,6 +16,7 @@ add_executable(einkleinflug
 	particles/particles.cxx
 	ship.cxx
 	text.cxx
+	weapon/base.cxx
 	weapon/control.cxx
 	weapon/types.cxx
 	world.cxx

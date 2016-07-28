@@ -46,7 +46,7 @@ public:
 
 /// control helper (1)
 class CWeaponController1:
-	public CEntity,
+	public CObject,
 	public CWeaponControl
 {
 private:
@@ -64,7 +64,7 @@ public:
 
 /// control helper (2)
 class CWeaponController2:
-	public CEntity,
+	public CObject,
 	public CWeaponControl
 {
 private:

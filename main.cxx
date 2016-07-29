@@ -192,7 +192,6 @@ void draw()
 void step()
 {
 	long const t_now = SDL_GetTicks();
-	Float const t = 0.001 * t_now;
 	Float const dt = 0.001 * (t_now - t_base);
 	static Float t_add = 0.0;
 	t_add += dt;

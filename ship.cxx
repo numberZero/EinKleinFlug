@@ -7,14 +7,14 @@
 Ship::Ship(World *world, Float hp, Float armor) :
 	Body(world),
 	max_hp(hp),
-	hp(hp),
-	armor(armor),
 	jets{
 		new Jet(this, {-2.0, -1.7}, {0.0, 75000.0}),
 		new Jet(this, {+2.0, -1.7}, {0.0, 75000.0}),
 		new Jet(this, {-2.0, +1.7}, {0.0, -75000.0}),
 		new Jet(this, {+2.0, +1.7}, {0.0, -75000.0})
-	}
+	},
+	hp(hp),
+	armor(armor)
 {
 	world->ships.insert(this);
 }

@@ -309,9 +309,9 @@ Beam::Beam(Ship *ship, Vector2 shift, Vector2 vel, Float power, Float range):
 	size_fullpower(400.0 * power),
 	particle_energy(base_life * power / size_fullpower),
 	ship(ship),
-	pos(shift),
+	power(power),
 	vel(vel),
-	power(power)
+	pos(shift)
 {
 }
 

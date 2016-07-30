@@ -23,8 +23,8 @@ std::unique_ptr<Client> client;
 std::unique_ptr<Server> server;
 World world(100.0);
 std::shared_ptr<Ship> me;
+std::shared_ptr<Ship> he;
 std::shared_ptr<Beam> b = nullptr;
-int respawn_count = -1;
 
 static std::ranlux24 gen(std::time(nullptr));
 static std::uniform_real_distribution<Float> pos(-world.manifold.radius, world.manifold.radius);
@@ -32,33 +32,31 @@ static std::uniform_real_distribution<Float> phi(-M_PI, M_PI);
 static std::uniform_real_distribution<Float> vel(0.0, 7.0);
 static std::uniform_real_distribution<Float> rvel(-0.2, 0.2);
 
-void respawn()
+void respawn(std::shared_ptr<Ship> &who = me, bool hero = true)
 {
 	Float a = phi(gen);
 	Float v = vel(gen);
-	++respawn_count;
-	me = Ship::create(&world);
-#ifdef HERO
-	me->max_hp = 20.0;
-	me->hp = 20.0;
-	me->armor = 20.0;
-#endif
-	me->prepare();
-	me->mirror = false;
-	me->pos = { pos(gen), pos(gen) };
-	me->vel = { v * std::cos(a), v * std::sin(a) };
-	me->rpos = phi(gen);
-	me->rvel = 0.0;
-	me->radius = 4.0;
-	me->mass = 5000.0;
-	me->rinertia = 5000.0;
+	who = Ship::create(&world);
+	if(hero)
+	{
+		who->max_hp = 20.0;
+		who->hp = 20.0;
+		who->armor = 20.0;
+	}
+	who->prepare();
+	who->mirror = false;
+	who->pos = { pos(gen), pos(gen) };
+	who->vel = { v * std::cos(a), v * std::sin(a) };
+	who->rpos = phi(gen);
+	who->rvel = 0.0;
+	who->radius = 4.0;
+	who->mass = 5000.0;
+	who->rinertia = 5000.0;
 	b = Beam::create(me, {0.0, 3.0}, {0.0, 150.0}, 20.0, 300.0);
 }
 
-void init()
+void generateShips()
 {
-	respawn();
-	if(!client)
 	for(int k = 0; k != 24; ++k)
 	{
 		std::shared_ptr<Ship> obj(Ship::create(&world));
@@ -73,6 +71,15 @@ void init()
 		obj->mass = 5000.0;
 		obj->rinertia = 5000.0;
 	}
+}
+
+void init()
+{
+	if(!client)
+		generateShips();
+	respawn(me);
+	if(server)
+		respawn(he);
 }
 
 class FPSCounter
@@ -179,7 +186,6 @@ void draw()
 	Float h = 14.0;
 	glColor4f(0.0, 1.0, 0.0, 0.7);
 	vglTextOutF(x, y -= dy, h, w, "FPS: %.1f / %.1f", fps_draw.value(), fps_model.value());
-	vglTextOutF(x, y -= dy, h, w, "Respawns: %d", respawn_count);
 	vglTextOutF(x, y -= dy, h, w, "Ships: %d", world.ships.size());
 	vglTextOutF(x, y -= dy, h, w, "Particle systems: %d", world.particles.size());
 	glColor4f(1.0, 1.0, 0.0, 0.7);
@@ -214,6 +220,7 @@ void step()
 	if(client)
 	{
 		client->recvState();
+		world.cleanup();
 		draw();
 		return;
 	}
@@ -228,10 +235,12 @@ void step()
 		world.prepare();
 		world.collide();
 		if(!me->viable())
-			respawn();
+			respawn(me);
+		if(server && !he->viable())
+			respawn(he);
 		world.cleanup();
 		if(server)
-			server->sendState();
+			server->sendState(he->id);
 	}
 
 	draw();
@@ -256,7 +265,9 @@ bool events()
 				if(event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)
 					return false;
 				if(event.key.keysym.scancode == SDL_SCANCODE_X)
-					respawn();
+					respawn(me);
+				if(event.key.keysym.scancode == SDL_SCANCODE_Y)
+					respawn(he);
 				break;
 		}
 	}
@@ -276,7 +287,7 @@ void initSDL()
 	window = SDL_CreateWindow("Ein Klein Flug", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_OPENGL);
 	context = SDL_GL_CreateContext(window);
 	SDL_GL_MakeCurrent(window, context);
-	SDL_GL_SetSwapInterval(-1);
+	SDL_GL_SetSwapInterval(0);
 	t_base = SDL_GetTicks();
 }
 

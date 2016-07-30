@@ -6,6 +6,7 @@
 #include <Eigen/Core>
 #pragma GCC diagnostic pop
 
+typedef unsigned long Id;
 typedef double Float;
 typedef Eigen::Vector2d Vector2;
 

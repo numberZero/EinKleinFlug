@@ -35,6 +35,7 @@ struct PACKED FrameHeader
 	std::uint32_t key;
 	std::uint32_t frame_id;
 	std::uint32_t ship_count;
+	std::uint32_t your_id;
 };
 
 struct PACKED FrameFooter
@@ -45,8 +46,7 @@ struct PACKED FrameFooter
 
 struct PACKED ShipHeader
 {
-	std::uint8_t desc_present;
-	std::uint8_t state_present;
+	std::uint32_t id;
 };
 
 struct PACKED ShipDesc
@@ -60,5 +60,6 @@ struct PACKED ShipState
 {
 	fixed32_t position[3];
 	fixed32_t velocity[3];
+	std::uint8_t mirror;
 	fixed32_t hp;
 };

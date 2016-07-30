@@ -49,32 +49,13 @@ void Client::recvState()
 	world->ships.clear();
 	for(unsigned k = 0; k != hdr.ship_count; ++k)
 	{
-		ShipHeader hdr;
+		ShipHeader head;
 		ShipDesc desc;
 		ShipState state;
-		readObject(connection_socket, hdr);
-		if(hdr.desc_present)
-			readObject(connection_socket, desc);
-		else
-		{
-			desc.recharge_rate = 0.5;
-			desc.max_hp = 10.0;
-			desc.armor = 7.0;
-		}
-		if(hdr.state_present)
-			readObject(connection_socket, state);
-		else
-		{
-			std::clog << "Stateless ship?!" << std::endl;
-			state.position[0] = me->pos[0];
-			state.position[1] = me->pos[1];
-			state.position[2] = me->rpos;
-			state.velocity[0] = me->vel[0];
-			state.velocity[1] = me->vel[1];
-			state.velocity[2] = me->rvel;
-			state.hp = me->hp;
-		}
-		std::shared_ptr<Ship> ship(Ship::create(world));
+		readObject(connection_socket, head);
+		readObject(connection_socket, desc);
+		readObject(connection_socket, state);
+		std::shared_ptr<Ship> ship(Ship::create(world, head.id));
 		ship->recharge_rate = desc.recharge_rate;
 		ship->max_hp = desc.max_hp;
 		ship->armor = desc.armor;
@@ -84,9 +65,11 @@ void Client::recvState()
 		ship->vel[0] = state.velocity[0];
 		ship->vel[1] = state.velocity[1];
 		ship->rvel = state.velocity[2];
+		ship->mirror = state.mirror;
 		ship->hp = state.hp;
+		if(ship->id == hdr.your_id)
+			me = ship;
 	}
-	world->ships.emplace(me);
 	FrameFooter ftr;
 	readObject(connection_socket, ftr);
 	if(ftr.key != 0xAAC4C4AA)

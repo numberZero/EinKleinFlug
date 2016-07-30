@@ -42,20 +42,20 @@ void Server::accept1()
 	net_call_nt(close(server_socket));
 }
 
-void Server::sendState()
+void Server::sendState(Id your_id)
 {
 	FrameHeader hdr;
 	hdr.key = 0x88C4C488;
 	hdr.frame_id = world->frame;
 	hdr.ship_count = world->ships.size();
+	hdr.your_id = your_id;
 	writeObject(connection_socket, hdr);
 	for(std::shared_ptr<Ship const> ship: world->ships)
 	{
 		ShipHeader hdr;
 		ShipDesc desc;
 		ShipState state;
-		hdr.desc_present = 1;
-		hdr.state_present = 1;
+		hdr.id = ship->id;
 		desc.recharge_rate = ship->recharge_rate;
 		desc.max_hp = ship->max_hp;
 		desc.armor = ship->armor;
@@ -65,6 +65,7 @@ void Server::sendState()
 		state.velocity[0] = ship->vel[0];
 		state.velocity[1] = ship->vel[1];
 		state.velocity[2] = ship->rvel;
+		state.mirror = ship->mirror ? 1 : 0;
 		state.hp = ship->hp;
 		writeObject(connection_socket, hdr);
 		writeObject(connection_socket, desc);

@@ -1,4 +1,5 @@
 #pragma once
+#include "types.hxx"
 
 class World;
 
@@ -11,5 +12,5 @@ struct Server
 	Server(World *world);
 	~Server();
 	void accept1();
-	void sendState();
+	void sendState(Id his_id);
 };

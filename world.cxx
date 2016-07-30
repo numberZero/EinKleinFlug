@@ -1,6 +1,6 @@
 #include "world.hxx"
 #include <GL/gl.h>
-#include "particles/types.hxx"
+#include "particles/base.hxx"
 #include "ship.hxx"
 
 void CEntity::step()
@@ -106,7 +106,7 @@ void World::move()
 	for(std::shared_ptr<Ship> const &ship: ships)
 		ship->move();
 	for(std::shared_ptr<ParticleSystem> const &psys: particles)
-		psys->move(dt);
+		psys->move();
 	for(auto iter = entities.begin(); iter != entities.end(); )
 	{
 		auto pentity = iter++;

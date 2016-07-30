@@ -1,6 +1,7 @@
 #include "ship.hxx"
 #include <GL/gl.h>
-#include "particles/types.hxx"
+#include "particles/jet.hxx"
+#include "particles/explosion.hxx"
 #include "text.hxx"
 #include "world.hxx"
 
@@ -38,8 +39,6 @@ bool Ship::viable() const
 
 void Ship::die()
 {
-	for(int k = 0; k != 4; ++k)
-		jets[k]->die();
 	Explosion::create(world, *this, 200.0);
 }
 
@@ -48,8 +47,8 @@ void Ship::move()
 	Eigen::Matrix2d rot = world->manifold.absolutizationMatrix(*this);
 	for(int k = 0; k != 4; ++k)
 	{
-		Vector2 shift = rot * jets[k]->pos;
-		Vector2 thrust = jets[k]->power * rot * jets[k]->thrust;
+		Vector2 shift = rot * jets[k]->getPos();
+		Vector2 thrust = jets[k]->power * rot * jets[k]->getThrust();
 		force += thrust;
 		rforce += shift[0] * thrust[1] - shift[1] * thrust[0];
 	}

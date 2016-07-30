@@ -5,7 +5,8 @@
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include <SDL.h>
-#include "particles/types.hxx"
+#include "particles/beam.hxx"
+#include "particles/jet.hxx"
 #include "ship.hxx"
 #include "text.hxx"
 #include "world.hxx"
@@ -46,8 +47,6 @@ void respawn()
 	me->radius = 4.0;
 	me->mass = 5000.0;
 	me->rinertia = 5000.0;
-	if(b)
-		b->die();
 	b = Beam::create(me, {0.0, 3.0}, {0.0, 150.0}, 20.0, 300.0);
 }
 

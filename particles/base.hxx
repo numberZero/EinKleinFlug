@@ -10,7 +10,7 @@ struct Particle: PointState
 	Float value;
 };
 
-struct ParticleSystem
+class ParticleSystem
 {
 private:
 #ifdef USE_SHADERS
@@ -19,14 +19,14 @@ private:
 #endif
 
 public:
-	World *world;
-	std::list<Particle> particles;
+	World *const world;
 	Float const particle_size;
+	std::list<Particle> particles;
 
 	ParticleSystem(World *world, Float particle_size);
 	virtual ~ParticleSystem();
 	virtual bool viable() const;
-	virtual void move(Float dt);
+	virtual void move();
 
 	void draw(BodyState const *base);
 	virtual Color getColor(Particle const &particle);

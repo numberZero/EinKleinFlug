@@ -17,7 +17,11 @@ add_executable(einkleinflug
 	network/base.cxx
 	network/client.cxx
 	network/server.cxx
-	particles/particles.cxx
+	particles/base.cxx
+	particles/beam.cxx
+	particles/explosion.cxx
+	particles/jet.cxx
+	particles/owned.cxx
 	ship.cxx
 	text.cxx
 	world.cxx

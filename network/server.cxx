@@ -21,21 +21,25 @@ Server::Server(World *world):
 	addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 	addr.sin_port = htons(37771);
 	server_socket = socket(PF_INET, SOCK_STREAM, 0);
-	setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-	bind(server_socket, reinterpret_cast<sockaddr *>(&addr), sizeof(addr));
-	listen(server_socket, 1);
+	if(server_socket == -1)
+		net_error("Can’t create socket");
+	net_call_nt(setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)));
+	net_call(bind(server_socket, reinterpret_cast<sockaddr *>(&addr), sizeof(addr)));
+	net_call(listen(server_socket, 1));
 }
 
 Server::~Server()
 {
-	close(connection_socket);
-	close(server_socket);
+	net_call_nt(close(connection_socket));
+	net_call_nt(close(server_socket));
 }
 
 void Server::accept1()
 {
 	connection_socket = accept(server_socket, nullptr, nullptr);
-	close(server_socket);
+	if(server_socket == -1)
+		net_error("Can’t accept connection");
+	net_call_nt(close(server_socket));
 }
 
 void Server::sendState()

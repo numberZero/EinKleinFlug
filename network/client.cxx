@@ -17,11 +17,13 @@ Client::Client(World *world):
 	world(world)
 {
 	connection_socket = socket(PF_INET, SOCK_STREAM, 0);
+	if(connection_socket == -1)
+		net_error("Can’t create socket");
 }
 
 Client::~Client()
 {
-	close(connection_socket);
+	net_call_nt(close(connection_socket));
 }
 
 void Client::connectLB()
@@ -31,7 +33,7 @@ void Client::connectLB()
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 	addr.sin_port = htons(37771);
-	connect(connection_socket, reinterpret_cast<sockaddr *>(&addr), sizeof(addr));
+	net_call(connect(connection_socket, reinterpret_cast<sockaddr *>(&addr), sizeof(addr)));
 }
 
 void Client::recvState()
@@ -72,8 +74,10 @@ void Client::recvState()
 			state.velocity[2] = me->rvel;
 			state.hp = me->hp;
 		}
-		std::shared_ptr<Ship> ship(Ship::create(world, desc.max_hp, desc.armor));
+		std::shared_ptr<Ship> ship(Ship::create(world));
 		ship->recharge_rate = desc.recharge_rate;
+		ship->max_hp = desc.max_hp;
+		ship->armor = desc.armor;
 		ship->pos[0] = state.position[0];
 		ship->pos[1] = state.position[1];
 		ship->rpos = state.position[2];

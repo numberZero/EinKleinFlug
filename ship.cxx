@@ -4,18 +4,26 @@
 #include "text.hxx"
 #include "world.hxx"
 
-Ship::Ship(World *world) :
-	Body(world)
+unsigned long Ship::last_id = 0;
+
+Ship::Ship(World *world, unsigned long id) :
+	Body(world),
+	id(id)
 {
 }
 
-std::shared_ptr<Ship> Ship::create(World *world, Float hp, Float armor)
+std::shared_ptr<Ship> Ship::create(World *world)
 {
-	std::shared_ptr<Ship> ship(new Ship(world));
+	return create(world, ++last_id);
+}
+
+std::shared_ptr<Ship> Ship::create(World *world, unsigned long id)
+{
+	std::shared_ptr<Ship> ship(new Ship(world, id));
 	world->ships.emplace(ship);
-	ship->hp = hp;
-	ship->max_hp = hp;
-	ship->armor = armor;
+	ship->hp = 10.0;
+	ship->max_hp = 10.0;
+	ship->armor = 7.0;
 	ship->jets[0] = Jet::create(ship, {-2.0, -1.7}, {0.0, +75000.0});
 	ship->jets[1] = Jet::create(ship, {+2.0, -1.7}, {0.0, +75000.0});
 	ship->jets[2] = Jet::create(ship, {-2.0, +1.7}, {0.0, -75000.0});

@@ -31,7 +31,12 @@ void respawn()
 	Float a = phi(gen);
 	Float v = vel(gen);
 	++respawn_count;
-	me = Ship::create(&world, 20.0, 20.0);
+	me = Ship::create(&world);
+#ifdef HERO
+	me->max_hp = 20.0;
+	me->hp = 20.0;
+	me->armor = 20.0;
+#endif
 	me->prepare();
 	me->mirror = false;
 	me->pos = { pos(gen), pos(gen) };

@@ -74,13 +74,13 @@ void SquareKleinBottle::relativize(BodyState const &base, BodyState &state) cons
 	remap(base, state);
 	relativize_base(base, state);
 	state.mirror ^= base.mirror;
-	state.rpos -= base.rpos;
-	state.rvel -= base.rvel;
 	if(state.mirror)
 	{
 		state.rpos = -state.rpos;
 		state.rvel = -state.rvel;
 	}
+	state.rpos -= base.rpos;
+	state.rvel -= base.rvel;
 }
 
 Eigen::Matrix2d SquareKleinBottle::relativizationMatrix(Float rpos, bool mirror) const

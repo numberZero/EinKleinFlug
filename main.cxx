@@ -16,8 +16,8 @@ static long t_base;
 std::uint8_t const *keys;
 
 World world(100.0);
-Ship *me;
-Beam *b = nullptr;
+std::shared_ptr<Ship> me;
+std::shared_ptr<Beam> b = nullptr;
 int respawn_count = -1;
 
 static std::ranlux24 gen(std::time(nullptr));
@@ -31,7 +31,7 @@ void respawn()
 	Float a = phi(gen);
 	Float v = vel(gen);
 	++respawn_count;
-	me = new Ship(&world, 20.0, 20.0);
+	me = Ship::create(&world, 20.0, 20.0);
 	me->prepare();
 	me->mirror = false;
 	me->pos = { pos(gen), pos(gen) };
@@ -43,7 +43,7 @@ void respawn()
 	me->rinertia = 5000.0;
 	if(b)
 		b->die();
-	b = new Beam(me, {0.0, 3.0}, {0.0, 150.0}, 20.0, 300.0);
+	b = Beam::create(me, {0.0, 3.0}, {0.0, 150.0}, 20.0, 300.0);
 }
 
 void init()
@@ -51,7 +51,7 @@ void init()
 	respawn();
 	for(int k = 0; k != 24; ++k)
 	{
-		Ship *obj = new Ship(&world);
+		std::shared_ptr<Ship> obj(Ship::create(&world));
 		Float a = phi(gen);
 		Float v = vel(gen);
 		obj->mirror = false;

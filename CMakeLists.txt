@@ -4,10 +4,11 @@ project(einkleinflug)
 cmake_policy(SET CMP0004 OLD)
 set(CMAKE_CXX_STANDARD 11)
 
-find_package(OpenGL REQUIRED)
-find_package(GLUT REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(GLUT REQUIRED)
+find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED)
+find_package(Threads REQUIRED)
 
 add_executable(einkleinflug
 	body.cxx
@@ -24,12 +25,13 @@ target_compile_definitions(einkleinflug PRIVATE
 target_include_directories(einkleinflug PUBLIC
  	${PROJECT_SOURCE_DIR}/
 	${EIGEN3_INCLUDE_DIR}
-	${SDL2_INCLUDE_DIRS}
-	${OPENGL_INCLUDE_DIR}
 	${GLUT_INCLUDE_DIR}
+	${OPENGL_INCLUDE_DIR}
+	${SDL2_INCLUDE_DIRS}
 )
 target_link_libraries(einkleinflug
-	${SDL2_LIBRARIES}
-	${OPENGL_LIBRARIES}
+	${CMAKE_THREAD_LIBS_INIT}
 	${GLUT_LIBRARIES}
+	${OPENGL_LIBRARIES}
+	${SDL2_LIBRARIES}
 )

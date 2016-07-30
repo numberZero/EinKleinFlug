@@ -4,19 +4,23 @@
 #include "text.hxx"
 #include "world.hxx"
 
-Ship::Ship(World *world, Float hp, Float armor) :
-	Body(world),
-	max_hp(hp),
-	jets{
-		new Jet(this, {-2.0, -1.7}, {0.0, 75000.0}),
-		new Jet(this, {+2.0, -1.7}, {0.0, 75000.0}),
-		new Jet(this, {-2.0, +1.7}, {0.0, -75000.0}),
-		new Jet(this, {+2.0, +1.7}, {0.0, -75000.0})
-	},
-	hp(hp),
-	armor(armor)
+Ship::Ship(World *world) :
+	Body(world)
 {
-	world->ships.insert(this);
+}
+
+std::shared_ptr<Ship> Ship::create(World *world, Float hp, Float armor)
+{
+	std::shared_ptr<Ship> ship(new Ship(world));
+	world->ships.emplace(ship);
+	ship->hp = hp;
+	ship->max_hp = hp;
+	ship->armor = armor;
+	ship->jets[0] = Jet::create(ship, {-2.0, -1.7}, {0.0, +75000.0});
+	ship->jets[1] = Jet::create(ship, {+2.0, -1.7}, {0.0, +75000.0});
+	ship->jets[2] = Jet::create(ship, {-2.0, +1.7}, {0.0, -75000.0});
+	ship->jets[3] = Jet::create(ship, {+2.0, +1.7}, {0.0, -75000.0});
+	return ship;
 }
 
 bool Ship::viable() const
@@ -28,7 +32,7 @@ void Ship::die()
 {
 	for(int k = 0; k != 4; ++k)
 		jets[k]->die();
-	new Explosion(world, *this, 200.0);
+	Explosion::create(world, *this, 200.0);
 }
 
 void Ship::move()

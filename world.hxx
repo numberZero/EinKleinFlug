@@ -16,9 +16,10 @@ public:
 struct World
 {
 	SquareKleinBottle manifold;
-	std::set<Ship *> ships;
-	std::set<ParticleSystem *> particles;
+	std::set<std::shared_ptr<Ship>> ships;
+	std::set<std::shared_ptr<ParticleSystem>> particles;
 	std::set<std::weak_ptr<CEntity>> entities;
+	unsigned long frame = 0;
 	Float t = 0.0;
 	static constexpr Float const frame_rate = 50.0;
 	static constexpr Float const dt = 1.0 / frame_rate;
@@ -30,5 +31,5 @@ struct World
 	void cleanup();
 	void move();
 
-	void draw(Ship const *base);
+	void draw(std::shared_ptr<Ship const> base);
 };

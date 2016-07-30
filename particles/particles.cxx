@@ -65,7 +65,6 @@ ParticleSystem::ParticleSystem(World *world, Float particle_size) :
 	world(world),
 	particle_size(particle_size)
 {
-	world->particles.insert(this);
 #ifdef USE_SHADERS
 	glGenBuffers(1, &vertex_buffer);
 	glGenVertexArrays(1, &vertex_array);
@@ -226,6 +225,12 @@ Explosion::Explosion(World *world, PointState const &base, Float power) :
 	}
 }
 
+void Explosion::create(World *world, PointState const &base, Float power)
+{
+	std::shared_ptr<Explosion> explosion(new Explosion(world, base, power));
+	world->particles.emplace(explosion);
+}
+
 Color Explosion::getColor(Particle const &p)
 {
 	Float v = p.value;
@@ -233,7 +238,7 @@ Color Explosion::getColor(Particle const &p)
 	return Color(w, w * (3.0 * v - 1.0), w * (4.0 * v - 2.0));
 }
 
-Jet::Jet(Ship *ship, Vector2 shift, Vector2 thrust):
+Jet::Jet(std::shared_ptr<Ship> ship, Vector2 shift, Vector2 thrust):
 	ParticleSystem(ship->world, 0.5),
 	full_thrust(thrust.norm()),
 	base_vel(25.0),
@@ -247,6 +252,13 @@ Jet::Jet(Ship *ship, Vector2 shift, Vector2 thrust):
 	pos(shift),
 	thrust(thrust)
 {
+}
+
+std::shared_ptr<Jet> Jet::create(std::shared_ptr<Ship> ship, Vector2 shift, Vector2 thrust)
+{
+	std::shared_ptr<Jet> jet(new Jet(ship, shift, thrust));
+	jet->world->particles.emplace(jet);
+	return jet;
 }
 
 bool Jet::viable() const
@@ -300,7 +312,7 @@ Color Jet::getColor(Particle const &p)
 	return Color(2.5 * v, 2.5 * v - 1.0, 5.0 * v - 4.0);
 }
 
-Beam::Beam(Ship *ship, Vector2 shift, Vector2 vel, Float power, Float range):
+Beam::Beam(std::shared_ptr<Ship> ship, Vector2 shift, Vector2 vel, Float power, Float range):
 	ParticleSystem(ship->world, 0.4),
 	base_vel(vel.norm()),
 	base_life(range / base_vel),
@@ -313,6 +325,13 @@ Beam::Beam(Ship *ship, Vector2 shift, Vector2 vel, Float power, Float range):
 	vel(vel),
 	pos(shift)
 {
+}
+
+std::shared_ptr<Beam> Beam::create(std::shared_ptr<Ship> ship, Vector2 shift, Vector2 vel, Float power, Float range)
+{
+	std::shared_ptr<Beam> beam(new Beam(ship, shift, vel, power, range));
+	beam->world->particles.emplace(beam);
+	return beam;
 }
 
 // particels / second = power / particle_energy

@@ -65,9 +65,9 @@ void Ship::draw(BodyState const *base)
 	world->manifold.relativize(*base, state);
 	glTranslated(state.pos[0], state.pos[1], 0.0);
 	draw_info();
+	glRotated(180.0 / M_PI * state.rpos, 0.0, 0.0, 1.0);
 	if(state.mirror)
 		glScaled(-1.0, 1.0, 1.0);
-	glRotated(180.0 / M_PI * state.rpos, 0.0, 0.0, 1.0);
 	draw_model();
 	glPopMatrix();
 }

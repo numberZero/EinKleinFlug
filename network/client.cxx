@@ -56,6 +56,7 @@ void Client::recvState()
 		readObject(connection_socket, desc);
 		readObject(connection_socket, state);
 		std::shared_ptr<Ship> ship(Ship::create(world, head.id));
+		ship->radius = desc.radius;
 		ship->recharge_rate = desc.recharge_rate;
 		ship->max_hp = desc.max_hp;
 		ship->armor = desc.armor;

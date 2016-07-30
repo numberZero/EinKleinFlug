@@ -6,6 +6,7 @@
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include <SDL.h>
+#include "network/base.hxx"
 #include "network/client.hxx"
 #include "network/server.hxx"
 #include "particles/beam.hxx"
@@ -76,10 +77,14 @@ void generateShips()
 void init()
 {
 	if(!client)
+	{
 		generateShips();
-	respawn(me);
+		respawn(me);
+	}
 	if(server)
+	{
 		respawn(he);
+	}
 }
 
 class FPSCounter
@@ -163,7 +168,7 @@ void draw()
 
 	glLoadIdentity();
 	glScalef(scale, scale, scale);
-	glTranslated(0, -10.0, 0.0);
+	glTranslated(0, -5.0, 0.0);
 	world.draw(me);
 // mark “me”
 	glLineWidth(5.0);
@@ -190,7 +195,10 @@ void draw()
 	vglTextOutF(x, y -= dy, h, w, "Particle systems: %d", world.particles.size());
 	glColor4f(1.0, 1.0, 0.0, 0.7);
 #ifndef NDEBUG
-	vglTextOutF(x, y -= dy, h, w, "Position: (%.1f, %.1f, %s)", me->pos[0], me->pos[1], me->mirror ? "positive" : "negative");
+	if(me)
+		vglTextOutF(x, y -= dy, h, w, "MY Position: (%.1f, %.1f, %.2f, %s)", me->pos[0], me->pos[1], me->rpos, me->mirror ? "negative" : "positive");
+	if(he)
+		vglTextOutF(x, y -= dy, h, w, "HIS Position: (%.1f, %.1f, %.2f, %s)", he->pos[0], he->pos[1], he->rpos, he->mirror ? "negative" : "positive");
 #endif
 	if(st_stabilizing)
 		vglTextOutF(x, y -= dy, h, w, "Stabilizing");
@@ -219,6 +227,7 @@ void step()
 
 	if(client)
 	{
+		fps_model.advance(dt);
 		client->recvState();
 		world.cleanup();
 		draw();
@@ -276,15 +285,27 @@ bool events()
 
 void run()
 {
-	while(events())
-		step();
+	try
+	{
+		while(events())
+			step();
+	}
+	catch(GracefulShutdown const &)
+	{
+		std::cout << "Disconnect" << std::endl;
+	}
 }
 
 void initSDL()
 {
+	std::string title = "Ein Klein Flug";
+	if(client)
+		title += " (client)";
+	if(server)
+		title += " (server)";
 	SDL_Init(SDL_INIT_EVERYTHING);
 	keys = SDL_GetKeyboardState(nullptr);
-	window = SDL_CreateWindow("Ein Klein Flug", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_OPENGL);
+	window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_OPENGL);
 	context = SDL_GL_CreateContext(window);
 	SDL_GL_MakeCurrent(window, context);
 	SDL_GL_SetSwapInterval(0);

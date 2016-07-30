@@ -56,6 +56,7 @@ void Server::sendState(Id your_id)
 		ShipDesc desc;
 		ShipState state;
 		hdr.id = ship->id;
+		desc.radius = ship->radius;
 		desc.recharge_rate = ship->recharge_rate;
 		desc.max_hp = ship->max_hp;
 		desc.armor = ship->armor;

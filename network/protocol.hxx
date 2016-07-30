@@ -51,6 +51,7 @@ struct PACKED ShipHeader
 
 struct PACKED ShipDesc
 {
+	fixed32_t radius;
 	fixed32_t recharge_rate;
 	fixed32_t max_hp;
 	fixed32_t armor;

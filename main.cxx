@@ -1,10 +1,13 @@
 #include <ctime>
 #include <iostream>
 #include <list>
+#include <memory>
 #include <random>
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include <SDL.h>
+#include "network/client.hxx"
+#include "network/server.hxx"
 #include "particles/types.hxx"
 #include "ship.hxx"
 #include "text.hxx"
@@ -15,6 +18,8 @@ static SDL_GLContext context;
 static long t_base;
 std::uint8_t const *keys;
 
+std::unique_ptr<Client> client;
+std::unique_ptr<Server> server;
 World world(100.0);
 std::shared_ptr<Ship> me;
 std::shared_ptr<Beam> b = nullptr;
@@ -54,6 +59,7 @@ void respawn()
 void init()
 {
 	respawn();
+	if(!client)
 	for(int k = 0; k != 24; ++k)
 	{
 		std::shared_ptr<Ship> obj(Ship::create(&world));
@@ -206,6 +212,13 @@ void step()
 
 	fps_draw.advance(dt);
 
+	if(client)
+	{
+		client->recvState();
+		draw();
+		return;
+	}
+
 	if(move)
 	{
 		double t_add_old = t_add;
@@ -218,6 +231,8 @@ void step()
 		if(!me->viable())
 			respawn();
 		world.cleanup();
+		if(server)
+			server->sendState();
 	}
 
 	draw();
@@ -288,10 +303,35 @@ void initGL()
 int main(int argc, char **argv)
 {
 	glutInit(&argc, argv);
+	switch(argc)
+	{
+		case 1:
+			break;
+		case 2:
+			if(argv[1] == std::string("server"))
+			{
+				server.reset(new Server(&world));
+				std::cout << "Waiting for connection" << std::endl;
+				server->accept1();
+				std::cout << "Connection accepted" << std::endl;
+			}
+			else if(argv[1] == std::string("client"))
+			{
+				client.reset(new Client(&world));
+				std::cout << "Connecting..." << std::endl;
+				client->connectLB();
+				std::cout << "Connected" << std::endl;
+			}
+			break;
+		default:
+			std::cout << "Usage:" << std::endl;
+			std::cout << "    einkleinflug [client|server]" << std::endl;
+			return EXIT_FAILURE;
+	}
 	initSDL();
 	initGL();
 	init();
 	run();
 	SDL_Quit();
-	return 0;
+	return EXIT_SUCCESS;
 }

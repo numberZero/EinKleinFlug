@@ -14,6 +14,9 @@ add_executable(einkleinflug
 	body.cxx
 	main.cxx
 	manifold.cxx
+	network/base.cxx
+	network/client.cxx
+	network/server.cxx
 	particles/particles.cxx
 	ship.cxx
 	text.cxx

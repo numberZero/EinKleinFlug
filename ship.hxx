@@ -5,6 +5,7 @@
 #include "body.hxx"
 
 class Jet;
+class Beam;
 
 struct Ship: Body
 {
@@ -22,6 +23,7 @@ public:
 	Float hp;
 	Float armor;
 	std::shared_ptr<Jet> jets[4];
+	std::shared_ptr<Beam> beams[2];
 
 	static std::shared_ptr<Ship> create(World *world);
 	static std::shared_ptr<Ship> create(World *world, Id id);

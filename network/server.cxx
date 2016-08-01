@@ -6,9 +6,18 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include "base.hxx"
+#include "particles/base.hxx"
+#include "particles/beam.hxx"
+#include "particles/jet.hxx"
+#include "particles/explosion.hxx"
 #include "protocol.hxx"
 #include "ship.hxx"
 #include "world.hxx"
+#include <particles/base.hxx>
+
+class Beam;
+class Explosion;
+class Jet;
 
 Server::Server(World *world):
 	world(world),
@@ -47,8 +56,9 @@ void Server::sendState(Id your_id)
 	FrameHeader hdr;
 	hdr.key = 0x88C4C488;
 	hdr.frame_id = world->frame;
-	hdr.ship_count = world->ships.size();
 	hdr.your_id = your_id;
+	hdr.ship_count = world->ships.size();
+	hdr.psys_count = world->particles.size();
 	writeObject(connection_socket, hdr);
 	for(std::shared_ptr<Ship const> ship: world->ships)
 	{
@@ -71,6 +81,31 @@ void Server::sendState(Id your_id)
 		writeObject(connection_socket, hdr);
 		writeObject(connection_socket, desc);
 		writeObject(connection_socket, state);
+	}
+	for(std::shared_ptr<ParticleSystem const> psys: world->particles)
+	{
+		PSysHeader head;
+		if(dynamic_cast<Jet const *>(psys.get()))
+			head.type = PSysType::Jet;
+		else if(dynamic_cast<Beam const *>(psys.get()))
+			head.type = PSysType::Beam;
+		else if(dynamic_cast<Explosion const *>(psys.get()))
+			head.type = PSysType::Explosion;
+		else
+			throw std::logic_error("Unknown particle system type");
+		head.particle_count = psys->particles.size();
+		writeObject(connection_socket, head);
+		for(auto const &part: psys->particles)
+		{
+			ParticleState state;
+			state.position[0] = part.pos[0];
+			state.position[1] = part.pos[1];
+			state.velocity[0] = part.vel[0];
+			state.velocity[1] = part.vel[1];
+			state.life = part.life;
+			state.value = part.value;
+			writeObject(connection_socket, state);
+		}
 	}
 	FrameFooter ftr;
 	ftr.key = 0xAAC4C4AA;

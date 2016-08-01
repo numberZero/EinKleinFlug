@@ -1,7 +1,8 @@
 #include "ship.hxx"
 #include <GL/gl.h>
-#include "particles/jet.hxx"
+#include "particles/beam.hxx"
 #include "particles/explosion.hxx"
+#include "particles/jet.hxx"
 #include "text.hxx"
 #include "world.hxx"
 
@@ -29,6 +30,8 @@ std::shared_ptr<Ship> Ship::create(World *world, Id id)
 	ship->jets[1] = Jet::create(ship, {+2.0, -1.7}, {0.0, +75000.0});
 	ship->jets[2] = Jet::create(ship, {-2.0, +1.7}, {0.0, -75000.0});
 	ship->jets[3] = Jet::create(ship, {+2.0, +1.7}, {0.0, -75000.0});
+	ship->beams[0] = Beam::create(ship, {-2.5, 2.0}, {+5.0, 150.0}, 10.0, 250.0);
+	ship->beams[1] = Beam::create(ship, {+2.5, 2.0}, {-5.0, 150.0}, 10.0, 250.0);
 	return ship;
 }
 

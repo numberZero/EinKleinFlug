@@ -34,8 +34,9 @@ struct PACKED FrameHeader
 {
 	std::uint32_t key;
 	std::uint32_t frame_id;
-	std::uint32_t ship_count;
 	std::uint32_t your_id;
+	std::uint32_t ship_count;
+	std::uint32_t psys_count;
 };
 
 struct PACKED FrameFooter
@@ -63,4 +64,25 @@ struct PACKED ShipState
 	fixed32_t velocity[3];
 	std::uint8_t mirror;
 	fixed32_t hp;
+};
+
+enum class PSysType: std::uint8_t
+{
+	Explosion = 0,
+	Jet = 1,
+	Beam = 2,
+};
+
+struct PACKED PSysHeader
+{
+	PSysType type;
+	std::uint32_t particle_count;
+};
+
+struct PACKED ParticleState
+{
+	fixed32_t position[2];
+	fixed32_t velocity[2];
+	fixed32_t life;
+	fixed32_t value;
 };

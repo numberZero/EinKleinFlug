@@ -2,11 +2,16 @@
 #include <cmath>
 #include <cstring>
 #include <iostream>
+#include <map>
 #include <netinet/in.h>
 #include <netinet/udp.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include "base.hxx"
+#include "particles/base.hxx"
+#include "particles/beam.hxx"
+#include "particles/jet.hxx"
+#include "particles/explosion.hxx"
 #include "protocol.hxx"
 #include "ship.hxx"
 #include "world.hxx"
@@ -46,6 +51,9 @@ void Client::recvState()
 	{
 		std::clog << "Warn: synchronization error detected" << std::endl;
 	}
+	std::map<Id, std::shared_ptr<Ship>> ships;
+	for(auto pship: world->ships)
+		ships.emplace(pship->id, std::move(pship));
 	world->ships.clear();
 	for(unsigned k = 0; k != hdr.ship_count; ++k)
 	{
@@ -55,7 +63,11 @@ void Client::recvState()
 		readObject(connection_socket, head);
 		readObject(connection_socket, desc);
 		readObject(connection_socket, state);
-		std::shared_ptr<Ship> ship(Ship::create(world, head.id));
+		std::shared_ptr<Ship> &ship(ships[head.id]);
+		if(ship)
+			world->ships.insert(ship);
+		else
+			ship = Ship::create(world, head.id);
 		ship->radius = desc.radius;
 		ship->recharge_rate = desc.recharge_rate;
 		ship->max_hp = desc.max_hp;
@@ -68,8 +80,58 @@ void Client::recvState()
 		ship->rvel = state.velocity[2];
 		ship->mirror = state.mirror;
 		ship->hp = state.hp;
-		if(ship->id == hdr.your_id)
-			me = ship;
+	}
+	me = ships[hdr.your_id];
+	std::shared_ptr<Beam> beam = me->beams[0];
+	std::shared_ptr<Jet> jet = me->jets[0];
+	static std::shared_ptr<Explosion> explosion;
+	if(!explosion)
+	{
+		world->particles.clear();
+		Explosion::create(world, *me.get(), 200.0);
+		explosion = std::dynamic_pointer_cast<Explosion>(*world->particles.begin()); // dirty hack!
+		if(!explosion)
+			throw std::logic_error("Explosion hack didn’t worked");
+		world->particles.insert(beam);
+		world->particles.insert(jet);
+	}
+	else
+		world->particles.insert(explosion); // another dirty hack
+	beam->particles.clear();
+	jet->particles.clear();
+	explosion->particles.clear();
+	for(unsigned k = 0; k != hdr.psys_count; ++k)
+	{
+		PSysHeader head;
+		readObject(connection_socket, head);
+		std::shared_ptr<ParticleSystem> psys;
+		switch(head.type)
+		{
+			case PSysType::Beam:
+				psys = beam;
+				break;
+			case PSysType::Explosion:
+				psys = explosion;
+				break;
+			case PSysType::Jet:
+				psys = jet;
+				break;
+			default:
+				throw std::runtime_error("Protocol error: unknown particle system type");
+		}
+		for(unsigned j = 0; j != head.particle_count; ++j)
+		{
+			ParticleState state;
+			readObject(connection_socket, state);
+			Particle part;
+			part.pos[0] = state.position[0];
+			part.pos[1] = state.position[1];
+			part.vel[0] = state.velocity[0];
+			part.vel[1] = state.velocity[1];
+			part.life = state.life;
+			part.value = state.value;
+			psys->particles.push_back(part);
+		}
 	}
 	FrameFooter ftr;
 	readObject(connection_socket, ftr);

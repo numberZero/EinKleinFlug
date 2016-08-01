@@ -25,7 +25,6 @@ std::unique_ptr<Server> server;
 World world(100.0);
 std::shared_ptr<Ship> me;
 std::shared_ptr<Ship> he;
-std::shared_ptr<Beam> b = nullptr;
 
 static std::ranlux24 gen(std::time(nullptr));
 static std::uniform_real_distribution<Float> pos(-world.manifold.radius, world.manifold.radius);
@@ -53,7 +52,6 @@ void respawn(std::shared_ptr<Ship> &who = me, bool hero = true)
 	who->radius = 4.0;
 	who->mass = 5000.0;
 	who->rinertia = 5000.0;
-	b = Beam::create(me, {0.0, 3.0}, {0.0, 150.0}, 20.0, 300.0);
 }
 
 void generateShips()
@@ -156,7 +154,8 @@ void control()
 	me->jets[1]->power = p_right > 0 ? p_right : 0.0;
 	me->jets[2]->power = p_left < 0 ? -p_left : 0.0;
 	me->jets[3]->power = p_right < 0 ? -p_right : 0.0;
-	b->shots = shot;
+	me->beams[0]->shots = shot;
+	me->beams[1]->shots = shot;
 }
 
 void draw()

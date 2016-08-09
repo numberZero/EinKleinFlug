@@ -3,9 +3,13 @@
 #include <cstring>
 #include <iostream>
 #include <map>
+#ifdef WIN32
+#include <winsock2.h>
+#else
 #include <netinet/in.h>
 #include <netinet/udp.h>
 #include <sys/socket.h>
+#endif
 #include <unistd.h>
 #include "base.hxx"
 #include "particles/base.hxx"
@@ -28,7 +32,7 @@ Client::Client(World *world):
 
 Client::~Client()
 {
-	net_call_nt(close(connection_socket));
+	net_call_nt(closesocket(connection_socket));
 }
 
 void Client::connectLB()

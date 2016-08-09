@@ -1,9 +1,13 @@
 #include "server.hxx"
 #include <cmath>
 #include <cstring>
+#ifdef WIN32
+#include <winsock2.h>
+#else
 #include <netinet/in.h>
 #include <netinet/udp.h>
 #include <sys/socket.h>
+#endif
 #include <unistd.h>
 #include "base.hxx"
 #include "particles/base.hxx"
@@ -32,15 +36,15 @@ Server::Server(World *world):
 	server_socket = socket(PF_INET, SOCK_STREAM, 0);
 	if(server_socket == -1)
 		net_error("Can’t create socket");
-	net_call_nt(setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)));
+	net_call_nt(setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char const *>(&opt), sizeof(opt)));
 	net_call(bind(server_socket, reinterpret_cast<sockaddr *>(&addr), sizeof(addr)));
 	net_call(listen(server_socket, 1));
 }
 
 Server::~Server()
 {
-	net_call_nt(close(connection_socket));
-	net_call_nt(close(server_socket));
+	net_call_nt(closesocket(connection_socket));
+	net_call_nt(closesocket(server_socket));
 }
 
 void Server::accept1()
@@ -48,7 +52,7 @@ void Server::accept1()
 	connection_socket = accept(server_socket, nullptr, nullptr);
 	if(server_socket == -1)
 		net_error("Can’t accept connection");
-	net_call_nt(close(server_socket));
+	net_call_nt(closesocket(server_socket));
 }
 
 void Server::sendState(Id your_id)

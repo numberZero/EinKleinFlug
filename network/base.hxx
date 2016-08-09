@@ -34,3 +34,7 @@ void net_warning(std::string const &text);
 
 #define net_call(fn) if(fn) net_error(#fn)
 #define net_call_nt(fn) if(fn) net_warning(#fn)
+
+#ifndef WIN32
+#define closesocket close
+#endif

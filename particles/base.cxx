@@ -1,8 +1,6 @@
 #include "base.hxx"
 #include <GL/gl.h>
-#ifdef USE_SHADERS
 #include <GL/glext.h>
-#endif
 #include "world.hxx"
 
 struct Vertex

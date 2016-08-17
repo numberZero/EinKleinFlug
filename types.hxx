@@ -1,4 +1,5 @@
 #pragma once
+#include <cmath>
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wignored-attributes"
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -73,3 +74,11 @@ struct Color
 	void setB(Float x) { b = convert(x); }
 	void setA(Float x) { a = convert(x); }
 };
+
+inline Vector2 directionVector(Float angle, Float length = 1.0)
+{
+	return {
+		length * std::cos(angle),
+		length * std::sin(angle)
+	};
+}

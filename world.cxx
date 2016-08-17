@@ -3,10 +3,6 @@
 #include "particles/base.hxx"
 #include "ship.hxx"
 
-void CEntity::step()
-{
-}
-
 World::World(Float size):
 	manifold{size}
 {

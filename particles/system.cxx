@@ -1,4 +1,4 @@
-#include "base.hxx"
+#include "system.hxx"
 #include <GL/gl.h>
 #include <GL/glext.h>
 #include "world.hxx"

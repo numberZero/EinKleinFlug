@@ -1,6 +1,6 @@
 #include "world.hxx"
 #include <GL/gl.h>
-#include "particles/base.hxx"
+#include "particles/system.hxx"
 #include "ship.hxx"
 
 World::World(Float size):

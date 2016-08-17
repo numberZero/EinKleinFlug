@@ -6,7 +6,7 @@
 #include <GL/glut.h>
 #include <SDL.h>
 #include "particles/beam.hxx"
-#include "particles/jet.hxx"
+// #include "particles/jet.hxx"
 #include "ship.hxx"
 #include "text.hxx"
 #include "world.hxx"
@@ -47,7 +47,7 @@ void respawn()
 	me->radius = 4.0;
 	me->mass = 5000.0;
 	me->rinertia = 5000.0;
-	b = Beam::create(me, {0.0, 3.0}, {0.0, 150.0}, 20.0, 300.0);
+	b.reset(new Beam(*me, {0.0, 3.0}, {0.0, 150.0}, 20.0, 300.0));
 }
 
 void init()
@@ -134,11 +134,11 @@ void control()
 		else
 			st_stabilizing = false;
 	}
-	me->jets[0]->power = p_left > 0 ? p_left : 0.0;
-	me->jets[1]->power = p_right > 0 ? p_right : 0.0;
-	me->jets[2]->power = p_left < 0 ? -p_left : 0.0;
-	me->jets[3]->power = p_right < 0 ? -p_right : 0.0;
-	b->shots = shot;
+// 	me->jets[0]->power = p_left > 0 ? p_left : 0.0;
+// 	me->jets[1]->power = p_right > 0 ? p_right : 0.0;
+// 	me->jets[2]->power = p_left < 0 ? -p_left : 0.0;
+// 	me->jets[3]->power = p_right < 0 ? -p_right : 0.0;
+	b->setShot(shot);
 }
 
 void draw()
@@ -176,6 +176,7 @@ void draw()
 	vglTextOutF(x, y -= dy, h, w, "Respawns: %d", respawn_count);
 	vglTextOutF(x, y -= dy, h, w, "Ships: %d", world.ships.size());
 	vglTextOutF(x, y -= dy, h, w, "Particle systems: %d", world.particles.size());
+	vglTextOutF(x, y -= dy, h, w, "Entities: %d", world.entities.size());
 	glColor4f(1.0, 1.0, 0.0, 0.7);
 #ifndef NDEBUG
 	vglTextOutF(x, y -= dy, h, w, "Position: (%.1f, %.1f, %s)", me->pos[0], me->pos[1], me->mirror ? "positive" : "negative");

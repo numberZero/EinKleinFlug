@@ -16,6 +16,8 @@ add_executable(einkleinflug
 	manifold.cxx
 	particles/beam.cxx
 	particles/emitter.cxx
+	particles/explosion.cxx
+	particles/jet.cxx
 	particles/system.cxx
 	ship.cxx
 	text.cxx

@@ -21,7 +21,7 @@ public:
 	Float max_hp;
 	Float hp;
 	Float armor;
-	std::shared_ptr<Jet> jets[4];
+	std::unique_ptr<Jet> jets[4];
 
 	static std::shared_ptr<Ship> create(World *world);
 	static std::shared_ptr<Ship> create(World *world, unsigned long const id);

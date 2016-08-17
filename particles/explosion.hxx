@@ -1,5 +1,5 @@
 #pragma once
-#include "base.hxx"
+#include "system.hxx"
 
 class Explosion: public ParticleSystem
 {

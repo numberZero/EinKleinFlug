@@ -1,7 +1,7 @@
 #include "ship.hxx"
 #include <GL/gl.h>
-// #include "particles/jet.hxx"
-// #include "particles/explosion.hxx"
+#include "particles/jet.hxx"
+#include "particles/explosion.hxx"
 #include "text.hxx"
 #include "world.hxx"
 
@@ -25,10 +25,10 @@ std::shared_ptr<Ship> Ship::create(World *world, unsigned long id)
 	ship->hp = 10.0;
 	ship->max_hp = 10.0;
 	ship->armor = 7.0;
-// 	ship->jets[0] = Jet::create(ship, {-2.0, -1.7}, {0.0, +75000.0});
-// 	ship->jets[1] = Jet::create(ship, {+2.0, -1.7}, {0.0, +75000.0});
-// 	ship->jets[2] = Jet::create(ship, {-2.0, +1.7}, {0.0, -75000.0});
-// 	ship->jets[3] = Jet::create(ship, {+2.0, +1.7}, {0.0, -75000.0});
+	ship->jets[0].reset(new Jet(*ship, {-2.0, -1.7}, {0.0, +75000.0}));
+	ship->jets[1].reset(new Jet(*ship, {+2.0, -1.7}, {0.0, +75000.0}));
+	ship->jets[2].reset(new Jet(*ship, {-2.0, +1.7}, {0.0, -75000.0}));
+	ship->jets[3].reset(new Jet(*ship, {+2.0, +1.7}, {0.0, -75000.0}));
 	return ship;
 }
 
@@ -39,7 +39,7 @@ bool Ship::viable() const
 
 void Ship::die()
 {
-// 	Explosion::create(world, *this, 200.0);
+	Explosion::create(world, *this, 200.0);
 }
 
 void Ship::move()
@@ -47,10 +47,10 @@ void Ship::move()
 	Eigen::Matrix2d rot = world->manifold.absolutizationMatrix(*this);
 	for(int k = 0; k != 4; ++k)
 	{
-// 		Vector2 shift = rot * jets[k]->getPos();
-// 		Vector2 thrust = jets[k]->power * rot * jets[k]->getThrust();
-// 		force += thrust;
-// 		rforce += shift[0] * thrust[1] - shift[1] * thrust[0];
+		Vector2 shift = rot * jets[k]->getPos();
+		Vector2 thrust = rot * jets[k]->getThrust();
+		force += thrust;
+		rforce += shift[0] * thrust[1] - shift[1] * thrust[0];
 	}
 	Body::move();
 	hp += recharge_rate * world->dt;

@@ -6,7 +6,7 @@
 #include <GL/glut.h>
 #include <SDL.h>
 #include "particles/beam.hxx"
-// #include "particles/jet.hxx"
+#include "particles/jet.hxx"
 #include "ship.hxx"
 #include "text.hxx"
 #include "world.hxx"
@@ -134,10 +134,10 @@ void control()
 		else
 			st_stabilizing = false;
 	}
-// 	me->jets[0]->power = p_left > 0 ? p_left : 0.0;
-// 	me->jets[1]->power = p_right > 0 ? p_right : 0.0;
-// 	me->jets[2]->power = p_left < 0 ? -p_left : 0.0;
-// 	me->jets[3]->power = p_right < 0 ? -p_right : 0.0;
+	me->jets[0]->setPower(p_left);
+	me->jets[1]->setPower(p_right);
+	me->jets[2]->setPower(-p_left);
+	me->jets[3]->setPower(-p_right);
 	b->setShot(shot);
 }
 

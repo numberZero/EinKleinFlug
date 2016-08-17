@@ -58,7 +58,7 @@ void SquareKleinBottle::remap(PointState const &base, BodyState &state) const
 
 void SquareKleinBottle::relativize_base(BodyState const &base, PointState &state) const
 {
-	Eigen::Matrix2d rot = relativizationMatrix(base);
+	Matrix2 rot = relativizationMatrix(base);
 	state.pos = rot * (state.pos - base.pos);
 	state.vel = rot * (state.vel - base.vel);
 }
@@ -83,11 +83,11 @@ void SquareKleinBottle::relativize(BodyState const &base, BodyState &state) cons
 	state.rvel -= base.rvel;
 }
 
-Eigen::Matrix2d SquareKleinBottle::relativizationMatrix(Float rpos, bool mirror) const
+Matrix2 SquareKleinBottle::relativizationMatrix(Float rpos, bool mirror) const
 {
 	Float c = std::cos(rpos);
 	Float s = std::sin(rpos);
-	Eigen::Matrix2d rot;
+	Matrix2 rot;
 	if(mirror)
 		rot << -c, s, s, c;
 	else
@@ -95,11 +95,11 @@ Eigen::Matrix2d SquareKleinBottle::relativizationMatrix(Float rpos, bool mirror)
 	return rot;
 }
 
-Eigen::Matrix2d SquareKleinBottle::absolutizationMatrix(Float rpos, bool mirror) const
+Matrix2 SquareKleinBottle::absolutizationMatrix(Float rpos, bool mirror) const
 {
 	Float c = std::cos(rpos);
 	Float s = std::sin(rpos);
-	Eigen::Matrix2d rot;
+	Matrix2 rot;
 	if(mirror)
 		rot << -c, s, s, c; // gives correct result
 	else
@@ -107,19 +107,19 @@ Eigen::Matrix2d SquareKleinBottle::absolutizationMatrix(Float rpos, bool mirror)
 	return rot;
 }
 
-Eigen::Matrix2d SquareKleinBottle::relativizationMatrix(const BodyState& base) const
+Matrix2 SquareKleinBottle::relativizationMatrix(const BodyState& base) const
 {
 	return relativizationMatrix(base.rpos, base.mirror);
 }
 
-Eigen::Matrix2d SquareKleinBottle::absolutizationMatrix(const BodyState& base) const
+Matrix2 SquareKleinBottle::absolutizationMatrix(const BodyState& base) const
 {
 	return absolutizationMatrix(base.rpos, base.mirror);
 }
 
 void SquareKleinBottle::absolutize(BodyState const &base, PointState &state) const
 {
-	Eigen::Matrix2d rot = absolutizationMatrix(base);
+	Matrix2 rot = absolutizationMatrix(base);
 	state.pos = base.pos + rot * state.pos;
 	state.vel = base.vel + rot * state.vel;
 }

@@ -44,7 +44,7 @@ void Ship::die()
 
 void Ship::move()
 {
-	Eigen::Matrix2d rot = world->manifold.absolutizationMatrix(*this);
+	Matrix2 rot = world->manifold.absolutizationMatrix(*this);
 	for(int k = 0; k != 4; ++k)
 	{
 		Vector2 shift = rot * jets[k]->getPos();

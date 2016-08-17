@@ -9,6 +9,11 @@
 
 typedef double Float;
 typedef Eigen::Vector2d Vector2;
+typedef Eigen::Vector3d Vector3;
+typedef Eigen::Vector4d Vector4;
+typedef Eigen::Matrix2d Matrix2;
+typedef Eigen::Matrix3d Matrix3;
+typedef Eigen::Matrix4d Matrix4;
 
 struct Color
 {
@@ -62,6 +67,30 @@ struct Color
 		setG(g);
 		setB(b);
 		setA(a);
+	}
+
+	Color(Float value)
+	{
+		setR(value);
+		setG(value);
+		setB(value);
+		setA(1.0);
+	}
+
+	Color(Vector3 color)
+	{
+		setR(color[0]);
+		setG(color[1]);
+		setB(color[2]);
+		setA(1.0);
+	}
+
+	Color(Vector4 color)
+	{
+		setR(color[0]);
+		setG(color[1]);
+		setB(color[2]);
+		setA(color[3]);
 	}
 
 	Float getR() const { return r / 255.0; }

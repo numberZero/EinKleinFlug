@@ -1,5 +1,6 @@
 #pragma once
 #include <list>
+#include <memory>
 #include "manifold.hxx"
 
 class World;
@@ -22,6 +23,7 @@ public:
 	World *const world;
 	Float const particle_size;
 	std::list<Particle> particles;
+	std::shared_ptr<Matrix4 const> colorization;
 
 	ParticleSystem(World *world, Float particle_size);
 	virtual ~ParticleSystem();

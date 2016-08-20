@@ -11,5 +11,4 @@ public:
 	Float const base_life;
 
 	static void create(World *world, PointState const &base, Float power = 200.0);
-	Color getColor(Particle const &particle) override;
 };

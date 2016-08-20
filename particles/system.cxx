@@ -188,6 +188,12 @@ void ParticleSystem::draw(BodyState const *base)
 
 Color ParticleSystem::getColor(Particle const &p)
 {
+	if(colorization)
+	{
+		Float a = p.value;
+		Float b = p.life * p.life * p.life;
+		return Color(Vector4(*colorization * Vector4{ a, b, a * b, 1.0 }));
+	}
 	Float y = std::atan(p.life) / M_PI;
 	return Color(y, y, y, 1.0);
 }

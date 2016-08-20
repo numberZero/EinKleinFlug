@@ -19,7 +19,7 @@ private:
 	PRNG generator;
 
 public:
-	ParticleEmitter(BodyState &base);
+	ParticleEmitter(BodyState &base, std::shared_ptr<Matrix4> colorization = nullptr);
 	BodyState const &base;
 	Float particle_size;
 	Vector2 base_position;
@@ -30,6 +30,7 @@ public:
 	Float spread_velocity = 0.0;
 	Float spread_life = 0.0;
 
+	std::shared_ptr<Matrix4> const colorization;
 	Float power = 0.0; ///< value / second
 
 	void step() override;

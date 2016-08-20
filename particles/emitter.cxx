@@ -7,8 +7,9 @@
 
 extern World world;
 
-ParticleEmitter::ParticleEmitter(BodyState &base) :
-	base(base)
+ParticleEmitter::ParticleEmitter(BodyState &base, std::shared_ptr<Matrix4> colorization) :
+	base(base),
+	colorization(colorization)
 {
 }
 
@@ -28,6 +29,7 @@ void ParticleEmitter::step()
 	if(!psys)
 	{
 		psys.reset(new ParticleSystem(&world, particle_size));
+		psys->colorization = colorization;
 		world.particles.insert(psys);
 		particle_system = psys;
 	}

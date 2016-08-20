@@ -30,16 +30,19 @@ Explosion::Explosion(World *world, PointState const &base, Float power) :
 		particles.push_back(p);
 		power -= p.value;
 	}
+
+	std::shared_ptr<Matrix4> clr(new Matrix4());
+	colorization = clr;
+	Float c = 1.0 / std::pow(base_life, 3);
+	Matrix4 &matrix = *clr;
+	matrix <<
+		0.0, 1.0 * c, 0.0, 0.0,
+		0.0, -1.0 * c, 3.0 * c, 0.0,
+		0.0, -2.0 * c, 4.0 * c, 0.0,
+		0.0, 0.0, 0.0, 1.0;
 }
 
 void Explosion::create(World *world, PointState const &base, Float power)
 {
 	world->particles.emplace(new Explosion(world, base, power));
-}
-
-Color Explosion::getColor(Particle const &p)
-{
-	Float v = p.value;
-	Float w = std::pow(p.life / base_life, 3.0);
-	return Color(w, w * (3.0 * v - 1.0), w * (4.0 * v - 2.0));
 }

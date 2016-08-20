@@ -7,7 +7,7 @@
 
 Beam::Beam(Ship &ship, Vector2 shift, Vector2 vel, Float power, Float range) :
 	ship(ship),
-	emitter(new ParticleEmitter(ship)),
+	emitter(new ParticleEmitter(ship, std::shared_ptr<Matrix4>(new Matrix4()))),
 	power(power)
 {
 	Float base_vel = vel.norm();
@@ -16,10 +16,18 @@ Beam::Beam(Ship &ship, Vector2 shift, Vector2 vel, Float power, Float range) :
 	emitter->base_velocity = vel;
 	emitter->base_life = range / base_vel;
 	emitter->base_value = emitter->base_life / 400.0;
-	emitter->spread_position = 0.3;
+	emitter->spread_position = 0.1;
 	emitter->spread_velocity = 0.04 * base_vel;
 	emitter->spread_life = 0.1;
 	ship.world->entities.insert(emitter);
+
+	Float c = 1.0 / (emitter->base_value * std::pow(emitter->base_life, 3));
+	Matrix4 &matrix = *emitter->colorization;
+	matrix <<
+		0.0, 0.0, 2.5 * c, -1.5,
+		0.0, 0.0, 5.0 * c, -4.0,
+		0.0, 0.0, 3.5 * c, 0.0,
+		0.0, 0.0, 0.0, 1.0;
 }
 
 bool Beam::doesShot() const
@@ -32,11 +40,3 @@ void Beam::setShot(bool value)
 	shots = value;
 	emitter->power = shots ? power : 0;
 }
-/*
-Color Beam::getColor(Particle const &p)
-{
-	Float w = std::pow(p.life / base_life, 3.0);
-	Float v = p.value * w / base_value;
-	return Color(2.5 * v - 1.0, 5.0 * v - 4.0, 2.5 * v);
-}
-*/

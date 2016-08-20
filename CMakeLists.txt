@@ -23,7 +23,8 @@ add_executable(einkleinflug
 	text.cxx
 	weapon/base.cxx
 	weapon/control.cxx
-	weapon/types.cxx
+	weapon/machine.cxx
+	weapon/plasma.cxx
 	world.cxx
 )
 target_compile_definitions(einkleinflug PRIVATE

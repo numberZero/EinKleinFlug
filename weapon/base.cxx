@@ -5,17 +5,17 @@ CMountable::CMountable(SMountInfo const &mount)
 
 }
 
-CMountable::CMountable(CEntity *base, SMountPos const &pos, BodyDesc const&desc)
+CMountable::CMountable(CObject *base, SMountPos const &pos, BodyDesc const&desc)
 {
 
 }
 
-void CEntity::mount(CMountable *object, SMountPos const &pos)
+void CObject::mount(CMountable *object, SMountPos const &pos)
 {
 
 }
 
-void CEntity::dismount(CMountable *object)
+void CObject::dismount(CMountable *object)
 {
 
 }
@@ -30,7 +30,7 @@ CCannon::CCannon(SMountInfo const &mount) :
 std::shared_ptr<IWeaponControl> CCannon::getControl() const
 {
 	if(!control) // possible only in fresh-constructed CCannon as shared_from_this is not available on that point yet
-		control = std::dynamic_pointer_cast<IWeaponControl>(std::const_pointer_cast<CObject>(shared_from_this()));
+		control = std::dynamic_pointer_cast<IWeaponControl>(std::const_pointer_cast<CEntity>(shared_from_this()));
 	assert(control);
 	return control;
 }

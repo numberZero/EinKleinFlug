@@ -1,4 +1,5 @@
 #include "control.hxx"
+#include "world.hxx"
 
 bool CWeaponControl::getTriggerState() const
 {

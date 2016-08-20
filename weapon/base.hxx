@@ -6,7 +6,7 @@
 #include "world.hxx"
 
 class CMountable;
-class CEntity;
+class CObject;
 
 struct SMountPos
 {
@@ -16,7 +16,7 @@ struct SMountPos
 
 struct SMountInfo
 {
-	CEntity *base;
+	CObject *base;
 	SMountPos pos;
 	BodyDesc desc;
 };
@@ -29,20 +29,20 @@ struct SMount
 };
 
 class CMountable:
-	public CObject,
+	public CEntity,
 	public BodyDesc
 {
 protected:
-	CEntity *base;
+	CObject *base;
 	SMountPos const *mount;
 
 	CMountable(SMountInfo const &mount);
-	CMountable(CEntity *base, SMountPos const &pos, BodyDesc const &desc);
+	CMountable(CObject *base, SMountPos const &pos, BodyDesc const &desc);
 
 public:
 };
 
-class CEntity:
+class CObject:
 	public CMountable,
 	public Body
 {

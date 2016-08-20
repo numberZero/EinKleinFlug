@@ -33,6 +33,7 @@ struct Body:
 	BodyDesc
 {
 	Body(World *world);
+	virtual ~Body() = default;
 	World *world;
 	void prepare();
 	virtual void move();

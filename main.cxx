@@ -5,7 +5,8 @@
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include <SDL.h>
-#include "particles/types.hxx"
+#include "particles/beam.hxx"
+#include "particles/jet.hxx"
 #include "ship.hxx"
 #include "text.hxx"
 #include "world.hxx"
@@ -16,8 +17,8 @@ static long t_base;
 std::uint8_t const *keys;
 
 World world(100.0);
-Ship *me;
-Beam *b = nullptr;
+std::shared_ptr<Ship> me;
+std::shared_ptr<Beam> b = nullptr;
 int respawn_count = -1;
 
 static std::ranlux24 gen(std::time(nullptr));
@@ -31,7 +32,12 @@ void respawn()
 	Float a = phi(gen);
 	Float v = vel(gen);
 	++respawn_count;
-	me = new Ship(&world, 20.0, 20.0);
+	me = Ship::create(&world);
+#ifdef HERO
+	me->max_hp = 20.0;
+	me->hp = 20.0;
+	me->armor = 20.0;
+#endif
 	me->prepare();
 	me->mirror = false;
 	me->pos = { pos(gen), pos(gen) };
@@ -41,9 +47,7 @@ void respawn()
 	me->radius = 4.0;
 	me->mass = 5000.0;
 	me->rinertia = 5000.0;
-	if(b)
-		b->die();
-	b = new Beam(me, {0.0, 3.0}, {0.0, 150.0}, 20.0, 300.0);
+	b.reset(new Beam(*me, {0.0, 3.0}, {0.0, 150.0}, 20.0, 300.0));
 }
 
 void init()
@@ -51,7 +55,7 @@ void init()
 	respawn();
 	for(int k = 0; k != 24; ++k)
 	{
-		Ship *obj = new Ship(&world);
+		std::shared_ptr<Ship> obj(Ship::create(&world));
 		Float a = phi(gen);
 		Float v = vel(gen);
 		obj->mirror = false;
@@ -130,11 +134,11 @@ void control()
 		else
 			st_stabilizing = false;
 	}
-	me->jets[0]->power = p_left > 0 ? p_left : 0.0;
-	me->jets[1]->power = p_right > 0 ? p_right : 0.0;
-	me->jets[2]->power = p_left < 0 ? -p_left : 0.0;
-	me->jets[3]->power = p_right < 0 ? -p_right : 0.0;
-	b->shots = shot;
+	me->jets[0]->setPower(p_left);
+	me->jets[1]->setPower(p_right);
+	me->jets[2]->setPower(-p_left);
+	me->jets[3]->setPower(-p_right);
+	b->setShot(shot);
 }
 
 void draw()
@@ -172,6 +176,7 @@ void draw()
 	vglTextOutF(x, y -= dy, h, w, "Respawns: %d", respawn_count);
 	vglTextOutF(x, y -= dy, h, w, "Ships: %d", world.ships.size());
 	vglTextOutF(x, y -= dy, h, w, "Particle systems: %d", world.particles.size());
+	vglTextOutF(x, y -= dy, h, w, "Entities: %d", world.entities.size());
 	glColor4f(1.0, 1.0, 0.0, 0.7);
 #ifndef NDEBUG
 	vglTextOutF(x, y -= dy, h, w, "Position: (%.1f, %.1f, %s)", me->pos[0], me->pos[1], me->mirror ? "positive" : "negative");
@@ -192,7 +197,6 @@ void draw()
 void step()
 {
 	long const t_now = SDL_GetTicks();
-	Float const t = 0.001 * t_now;
 	Float const dt = 0.001 * (t_now - t_base);
 	static Float t_add = 0.0;
 	t_add += dt;

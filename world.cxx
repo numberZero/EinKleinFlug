@@ -1,14 +1,10 @@
 #include "world.hxx"
 #include <GL/gl.h>
-#include "particles/types.hxx"
+#include "particles/system.hxx"
 #include "ship.hxx"
 
 constexpr Float const World::frame_rate;
 constexpr Float const World::dt;
-
-void CObject::step()
-{
-}
 
 World::World(Float size):
 	manifold{size}
@@ -17,8 +13,7 @@ World::World(Float size):
 
 void World::prepare()
 {
-	t += dt;
-	for(Ship *ship: ships)
+	for(std::shared_ptr<Ship> const &ship: ships)
 		ship->prepare();
 }
 
@@ -29,12 +24,12 @@ void World::collide()
 	for(auto iter1 = ships.begin(); iter1 != ships.end(); )
 	{
 		auto pship1 = iter1++;
-		Ship *ship1 = *pship1;
+		std::shared_ptr<Ship> ship1 = *pship1;
 		for(auto iter2 = iter1; iter2 != ships.end(); )
 		{ // thus we iterate over all unordered pairs
 			auto pship2 = iter2++;
-			Ship *ship2 = *pship2;
-			CollisionTestResult cinfo = ship1->testCollision(ship2);
+			std::shared_ptr<Ship> ship2 = *pship2;
+			CollisionTestResult cinfo = ship1->testCollision(ship2.get());
 			if(cinfo.distance >= 0)
 				continue; // not collided
 			if(cinfo.collision_speed < -eps)
@@ -58,11 +53,11 @@ void World::collide()
 		}
 	}
 // ship-particle collisions
-	for(Ship *ship: ships)
+	for(std::shared_ptr<Ship> const &ship: ships)
 	{
-		for(ParticleSystem *ps: particles)
+		for(std::shared_ptr<ParticleSystem> const &psys: particles)
 		{
-			for(auto iter = ps->particles.begin(); iter != ps->particles.end(); )
+			for(auto iter = psys->particles.begin(); iter != psys->particles.end(); )
 			{
 				auto ppart = iter++;
 				Particle &part = *ppart;
@@ -75,7 +70,7 @@ void World::collide()
 					if(relvel.dot(relpos) > 0) // moves away
 						continue;
 					ship->hp -= part.value;
-					ps->particles.erase(ppart);
+					psys->particles.erase(ppart);
 				}
 			}
 		}
@@ -87,50 +82,50 @@ void World::cleanup()
 	for(auto iter = ships.begin(); iter != ships.end(); )
 	{
 		auto pship = iter++;
-		Ship *ship = *pship;
+		std::shared_ptr<Ship> ship = *pship;
 		if(!ship->viable())
 		{
 			ships.erase(pship);
 			ship->die();
-			delete ship;
 		}
 	}
 	for(auto iter = particles.begin(); iter != particles.end(); )
 	{
-		auto pparts = iter++;
-		ParticleSystem *parts = *pparts;
-		if(!parts->viable())
+		auto ppsys = iter++;
+		std::shared_ptr<ParticleSystem> psys = *ppsys;
+		if(!psys->viable())
 		{
-			particles.erase(pparts);
-			delete parts;
+			particles.erase(ppsys);
 		}
 	}
 }
 
 void World::move()
 {
-	for(Ship *ship: ships)
+	for(std::shared_ptr<Ship> const &ship: ships)
 		ship->move();
-	for(ParticleSystem *parts: particles)
-		parts->move(dt);
+	for(std::shared_ptr<ParticleSystem> const &psys: particles)
+		psys->move();
 	for(auto iter = entities.begin(); iter != entities.end(); )
 	{
 		auto pentity = iter++;
-		std::shared_ptr<CObject> entity(pentity->lock());
+		std::shared_ptr<CEntity> entity(pentity->lock());
 		if(entity)
 			entity->step();
 		else
 			entities.erase(pentity);
 	}
+	++frame;
+	t += dt;
 }
 
-void World::draw(Ship const *base)
+void World::draw(std::shared_ptr<Ship const> base)
 {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-	for(ParticleSystem *parts: particles)
-		parts->draw(base);
+	for(std::shared_ptr<ParticleSystem> const &psys: particles)
+		psys->draw(base.get());
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	for(Ship *ship: ships)
-		ship->draw(base);
+	for(std::shared_ptr<Ship> const &ship: ships)
+		ship->draw(base.get());
 }

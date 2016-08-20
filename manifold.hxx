@@ -26,11 +26,11 @@ private:
 public:
 	Float const radius;
 
-	Eigen::Matrix2d relativizationMatrix(Float rpos, bool mirror) const;
-	Eigen::Matrix2d absolutizationMatrix(Float rpos, bool mirror) const;
+	Matrix2 relativizationMatrix(Float rpos, bool mirror) const;
+	Matrix2 absolutizationMatrix(Float rpos, bool mirror) const;
 
-	Eigen::Matrix2d relativizationMatrix(BodyState const &base) const;
-	Eigen::Matrix2d absolutizationMatrix(BodyState const &base) const;
+	Matrix2 relativizationMatrix(BodyState const &base) const;
+	Matrix2 absolutizationMatrix(BodyState const &base) const;
 
 	void stepState(PointState &state, Float dt) const;
 	void stepState(BodyState &state, Float dt) const;

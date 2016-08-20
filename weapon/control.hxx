@@ -1,5 +1,5 @@
 #pragma once
-#include "world.hxx"
+#include "entity.hxx"
 
 /// high-level control interface
 class IWeaponControl
@@ -46,7 +46,7 @@ public:
 
 /// control helper (1)
 class CWeaponController1:
-	public CObject,
+	public CEntity,
 	public CWeaponControl
 {
 private:
@@ -64,7 +64,7 @@ public:
 
 /// control helper (2)
 class CWeaponController2:
-	public CObject,
+	public CEntity,
 	public CWeaponControl
 {
 private:

@@ -1,22 +1,35 @@
 #include "ship.hxx"
 #include <GL/gl.h>
-#include "particles/types.hxx"
+#include "particles/jet.hxx"
+#include "particles/explosion.hxx"
 #include "text.hxx"
 #include "world.hxx"
 
-Ship::Ship(World *world, Float hp, Float armor) :
+unsigned long Ship::last_id = 0;
+
+Ship::Ship(World *world, unsigned long id) :
 	Body(world),
-	max_hp(hp),
-	hp(hp),
-	armor(armor),
-	jets{
-		new Jet(this, {-2.0, -1.7}, {0.0, 75000.0}),
-		new Jet(this, {+2.0, -1.7}, {0.0, 75000.0}),
-		new Jet(this, {-2.0, +1.7}, {0.0, -75000.0}),
-		new Jet(this, {+2.0, +1.7}, {0.0, -75000.0})
-	}
+	id(id)
 {
-	world->ships.insert(this);
+}
+
+std::shared_ptr<Ship> Ship::create(World *world)
+{
+	return create(world, ++last_id);
+}
+
+std::shared_ptr<Ship> Ship::create(World *world, unsigned long id)
+{
+	std::shared_ptr<Ship> ship(new Ship(world, id));
+	world->ships.emplace(ship);
+	ship->hp = 10.0;
+	ship->max_hp = 10.0;
+	ship->armor = 7.0;
+	ship->jets[0].reset(new Jet(*ship, {-2.0, -1.7}, {0.0, +75000.0}));
+	ship->jets[1].reset(new Jet(*ship, {+2.0, -1.7}, {0.0, +75000.0}));
+	ship->jets[2].reset(new Jet(*ship, {-2.0, +1.7}, {0.0, -75000.0}));
+	ship->jets[3].reset(new Jet(*ship, {+2.0, +1.7}, {0.0, -75000.0}));
+	return ship;
 }
 
 bool Ship::viable() const
@@ -26,18 +39,16 @@ bool Ship::viable() const
 
 void Ship::die()
 {
-	for(int k = 0; k != 4; ++k)
-		jets[k]->die();
-	new Explosion(world, *this, 200.0);
+	Explosion::create(world, *this, 200.0);
 }
 
 void Ship::move()
 {
-	Eigen::Matrix2d rot = world->manifold.absolutizationMatrix(*this);
+	Matrix2 rot = world->manifold.absolutizationMatrix(*this);
 	for(int k = 0; k != 4; ++k)
 	{
-		Vector2 shift = rot * jets[k]->pos;
-		Vector2 thrust = jets[k]->power * rot * jets[k]->thrust;
+		Vector2 shift = rot * jets[k]->getPos();
+		Vector2 thrust = rot * jets[k]->getThrust();
 		force += thrust;
 		rforce += shift[0] * thrust[1] - shift[1] * thrust[0];
 	}
@@ -54,9 +65,9 @@ void Ship::draw(BodyState const *base)
 	world->manifold.relativize(*base, state);
 	glTranslated(state.pos[0], state.pos[1], 0.0);
 	draw_info();
+	glRotated(180.0 / M_PI * state.rpos, 0.0, 0.0, 1.0);
 	if(state.mirror)
 		glScaled(-1.0, 1.0, 1.0);
-	glRotated(180.0 / M_PI * state.rpos, 0.0, 0.0, 1.0);
 	draw_model();
 	glPopMatrix();
 }

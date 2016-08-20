@@ -1,12 +1,19 @@
 #pragma once
+#include <cmath>
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wignored-attributes"
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#pragma GCC diagnostic ignored "-Wmisleading-indentation"
 #include <Eigen/Core>
 #pragma GCC diagnostic pop
 
 typedef double Float;
 typedef Eigen::Vector2d Vector2;
+typedef Eigen::Vector3d Vector3;
+typedef Eigen::Vector4d Vector4;
+typedef Eigen::Matrix2d Matrix2;
+typedef Eigen::Matrix3d Matrix3;
+typedef Eigen::Matrix4d Matrix4;
 
 struct Color
 {
@@ -62,6 +69,30 @@ struct Color
 		setA(a);
 	}
 
+	Color(Float value)
+	{
+		setR(value);
+		setG(value);
+		setB(value);
+		setA(1.0);
+	}
+
+	Color(Vector3 color)
+	{
+		setR(color[0]);
+		setG(color[1]);
+		setB(color[2]);
+		setA(1.0);
+	}
+
+	Color(Vector4 color)
+	{
+		setR(color[0]);
+		setG(color[1]);
+		setB(color[2]);
+		setA(color[3]);
+	}
+
 	Float getR() const { return r / 255.0; }
 	Float getG() const { return g / 255.0; }
 	Float getB() const { return b / 255.0; }
@@ -72,3 +103,11 @@ struct Color
 	void setB(Float x) { b = convert(x); }
 	void setA(Float x) { a = convert(x); }
 };
+
+inline Vector2 directionVector(Float angle, Float length = 1.0)
+{
+	return {
+		length * std::cos(angle),
+		length * std::sin(angle)
+	};
+}

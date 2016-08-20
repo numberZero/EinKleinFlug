@@ -22,14 +22,14 @@ private:
 public:
 	World *const world;
 	Float const particle_size;
+	Matrix4 const colorization;
 	std::list<Particle> particles;
-	std::shared_ptr<Matrix4 const> colorization;
 
-	ParticleSystem(World *world, Float particle_size);
-	virtual ~ParticleSystem();
-	virtual bool viable() const;
-	virtual void move();
+	ParticleSystem(World *world, Float particle_size, Matrix4 colorization);
+	~ParticleSystem();
+	bool viable() const;
+	void move();
 
 	void draw(BodyState const *base);
-	virtual Color getColor(Particle const &particle);
+	Color getColor(Particle const &particle);
 };

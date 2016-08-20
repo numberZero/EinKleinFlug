@@ -7,7 +7,7 @@
 
 Jet::Jet(Ship &ship, Vector2 shift, Vector2 thrust) :
 	ship(ship),
-	emitter(new ParticleEmitter(ship, std::shared_ptr<Matrix4>(new Matrix4()))),
+	emitter(new ParticleEmitter(ship)),
 	power(0.0),
 	pos(shift),
 	thrust(thrust)
@@ -25,8 +25,7 @@ Jet::Jet(Ship &ship, Vector2 shift, Vector2 thrust) :
 	ship.world->entities.insert(emitter);
 
 	Float c = 1.0 / (emitter->base_value * std::pow(emitter->base_life, 3));
-	Matrix4 &matrix = *emitter->colorization;
-	matrix <<
+	emitter->colorization <<
 		0.0, 0.0, 1.0 * c, 0.0,
 		0.0, 0.0, 2.5 * c, -0.6,
 		0.0, 0.0, 5.0 * c, -2.4,

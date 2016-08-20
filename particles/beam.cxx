@@ -7,7 +7,7 @@
 
 Beam::Beam(Ship &ship, Vector2 shift, Vector2 vel, Float power, Float range) :
 	ship(ship),
-	emitter(new ParticleEmitter(ship, std::shared_ptr<Matrix4>(new Matrix4()))),
+	emitter(new ParticleEmitter(ship)),
 	power(power)
 {
 	Float base_vel = vel.norm();
@@ -22,8 +22,7 @@ Beam::Beam(Ship &ship, Vector2 shift, Vector2 vel, Float power, Float range) :
 	ship.world->entities.insert(emitter);
 
 	Float c = 1.0 / (emitter->base_value * std::pow(emitter->base_life, 3));
-	Matrix4 &matrix = *emitter->colorization;
-	matrix <<
+	emitter->colorization <<
 		0.0, 0.0, 2.5 * c, -1.5,
 		0.0, 0.0, 5.0 * c, -4.0,
 		0.0, 0.0, 3.5 * c, 0.0,

@@ -12,6 +12,7 @@ bool CWeaponControl::setTriggerState(bool state)
 	trigger = state;
 	if(push)
 		onTriggerPush();
+	return trigger;
 }
 
 bool CWeaponControl::getAutofireState() const
@@ -39,7 +40,7 @@ void CWeaponController1::step()
 	}
 }
 
-bool CWeaponController1::onTriggerPush()
+void CWeaponController1::onTriggerPush()
 {
 	fired = false;
 }
@@ -63,7 +64,7 @@ void CWeaponController2::step()
 		weapon->setState(false);
 }
 
-bool CWeaponController2::onTriggerPush()
+void CWeaponController2::onTriggerPush()
 {
 	pulse_remains = pulse_frames;
 }

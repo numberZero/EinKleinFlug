@@ -19,7 +19,7 @@ protected:
 	bool autofire = false;
 	bool trigger = false;
 
-	virtual bool onTriggerPush() = 0;
+	virtual void onTriggerPush() = 0;
 
 public:
 	bool getTriggerState() const override;
@@ -33,7 +33,7 @@ class IPulseWeaponControl
 {
 public:
 	virtual bool canFire() const = 0;
-	virtual bool doFire() = 0;
+	virtual bool doFire() = 0; ///< \returns whenever was the shot actually performed
 };
 
 /// low-level control (2)
@@ -41,7 +41,7 @@ class IContinuousWeaponControl
 {
 public:
 	virtual bool getState() const = 0;
-	virtual bool setState(bool value) = 0;
+	virtual bool setState(bool value) = 0; ///< \returns the new state
 };
 
 /// control helper (1)
@@ -55,7 +55,7 @@ private:
 	bool trigger = false;
 	bool fired;
 
-	bool onTriggerPush() override;
+	void onTriggerPush() override;
 
 public:
 	CWeaponController1(IPulseWeaponControl *weapon);
@@ -74,7 +74,7 @@ private:
 	bool trigger = false;
 	unsigned pulse_remains = 0;
 
-	bool onTriggerPush() override;
+	void onTriggerPush() override;
 
 public:
 	CWeaponController2(IContinuousWeaponControl *weapon, double pulse_duration);

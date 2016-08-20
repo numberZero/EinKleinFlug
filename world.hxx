@@ -27,3 +27,5 @@ struct World
 
 	void draw(std::shared_ptr<Ship const> base);
 };
+
+extern World world;

@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include "entity.hxx"
 
 /// high-level control interface
@@ -50,7 +51,7 @@ class CWeaponController1:
 	public CWeaponControl
 {
 private:
-	IPulseWeaponControl *const weapon;
+	std::shared_ptr<IPulseWeaponControl> const weapon;
 	bool autofire = false;
 	bool trigger = false;
 	bool fired;
@@ -58,7 +59,7 @@ private:
 	void onTriggerPush() override;
 
 public:
-	CWeaponController1(IPulseWeaponControl *weapon);
+	CWeaponController1(std::shared_ptr<IPulseWeaponControl> weapon);
 	void step() override;
 };
 
@@ -68,7 +69,7 @@ class CWeaponController2:
 	public CWeaponControl
 {
 private:
-	IContinuousWeaponControl *const weapon;
+	std::shared_ptr<IContinuousWeaponControl> const weapon;
 	unsigned const pulse_frames;
 	bool autofire = false;
 	bool trigger = false;
@@ -77,6 +78,6 @@ private:
 	void onTriggerPush() override;
 
 public:
-	CWeaponController2(IContinuousWeaponControl *weapon, double pulse_duration);
+	CWeaponController2(std::shared_ptr<IContinuousWeaponControl> weapon, double pulse_duration);
 	void step() override;
 };

@@ -26,7 +26,7 @@ bool CWeaponControl::setAutofireState(bool state)
 	return autofire;
 }
 
-CWeaponController1::CWeaponController1(IPulseWeaponControl *weapon) :
+CWeaponController1::CWeaponController1(std::shared_ptr<IPulseWeaponControl> weapon) :
 	weapon(weapon)
 {
 }
@@ -45,7 +45,7 @@ void CWeaponController1::onTriggerPush()
 	fired = false;
 }
 
-CWeaponController2::CWeaponController2(IContinuousWeaponControl *weapon, double pulse_duration) :
+CWeaponController2::CWeaponController2(std::shared_ptr<IContinuousWeaponControl> weapon, double pulse_duration) :
 	weapon(weapon),
 	pulse_frames(pulse_duration * World::frame_rate)
 {

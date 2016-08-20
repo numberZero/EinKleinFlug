@@ -4,8 +4,7 @@
 
 class CMachineGun:
 	public CMountable,
-	public CWeaponController1,
-	private IPulseWeaponControl // can’t be public because used by CWeaponController1
+	public IPulseWeaponControl
 {
 private:
 	unsigned const ammo_max;
@@ -14,24 +13,29 @@ private:
 	unsigned ammo;
 	double reload;
 
-// CEntity (CWeaponController1)
+// CEntity (CMountable)
 	void step() override;
+
+public:
+	CMachineGun(unsigned ammo_max, double rate_of_fire);
 
 // IPulseWeaponControl
 	bool canFire() const override;
 	bool doFire() override;
 
-public:
-	CMachineGun(SMountInfo const &mount, unsigned ammo_max, double rate_of_fire);
-
 	unsigned getAmmo() const;
 	unsigned setAmmo(unsigned value);
+
+	static std::shared_ptr<IWeaponControl> create(
+		std::shared_ptr<CObject> base,
+		SMountPos const &pos,
+		unsigned ammo_max,
+		double rate_of_fire);
 };
 
 class CPlasmaCannon:
 	public CMountable,
-	public CWeaponController2,
-	private IContinuousWeaponControl
+	public IContinuousWeaponControl
 {
 private:
 	double const energy_max;
@@ -41,13 +45,20 @@ private:
 	double energy;
 	bool active;
 
-// CEntity (CWeaponController2)
+// CEntity (CMountable)
 	void step() override;
+
+public:
+	CPlasmaCannon(double energy_capacity, double output_power, double recharge_rate);
 
 // IContinuousWeaponControl
 	bool getState() const override;
 	bool setState(bool value) override;
 
-public:
-	CPlasmaCannon(SMountInfo const &mount, double energy_capacity, double output_power, double recharge_rate);
+	static std::shared_ptr<IWeaponControl> create(
+		std::shared_ptr<CObject> base,
+		SMountPos const &pos,
+		double energy_capacity,
+		double output_power,
+		double recharge_rate);
 };

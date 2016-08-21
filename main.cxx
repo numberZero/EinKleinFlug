@@ -1,7 +1,9 @@
 #include <ctime>
+#include <chrono>
 #include <iostream>
 #include <list>
 #include <random>
+#include <thread>
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include <SDL.h>
@@ -15,6 +17,7 @@ SDL_Window *window;
 static SDL_GLContext context;
 static long t_base;
 std::uint8_t const *keys;
+bool show_debug_info = true;
 
 World world(100.0);
 std::shared_ptr<Ship> me;
@@ -152,6 +155,7 @@ void draw()
 	glScalef(scale, scale, scale);
 	glTranslated(0, -10.0, 0.0);
 	world.draw(me);
+
 // mark “me”
 	glLineWidth(5.0);
 	glColor4f(0.0, 1.0, 0.0, 0.3);
@@ -165,6 +169,17 @@ void draw()
 	}
 	glEnd();
 
+// navigator
+	glLineWidth(1.0);
+	glBegin(GL_LINES);
+	glColor4f(1.0, 0.0, 0.0, 0.8);
+	glVertex2d(-500.0, 0.0);
+	glVertex2d(+500.0, 0.0);
+	glColor4f(0.0, 1.0, 0.0, 0.8);
+	glVertex2d(0.0, -500.0);
+	glVertex2d(0.0, +500.0);
+	glEnd();
+
 	glLoadIdentity();
 	Float x = -390.0;
 	Float y = 300.0;
@@ -174,13 +189,14 @@ void draw()
 	glColor4f(0.0, 1.0, 0.0, 0.7);
 	vglTextOutF(x, y -= dy, h, w, "FPS: %.1f / %.1f", fps_draw.value(), fps_model.value());
 	vglTextOutF(x, y -= dy, h, w, "Respawns: %d", respawn_count);
-	vglTextOutF(x, y -= dy, h, w, "Ships: %d", world.ships.size());
-	vglTextOutF(x, y -= dy, h, w, "Particle systems: %d", world.particles.size());
-	vglTextOutF(x, y -= dy, h, w, "Entities: %d", world.entities.size());
 	glColor4f(1.0, 1.0, 0.0, 0.7);
-#ifndef NDEBUG
-	vglTextOutF(x, y -= dy, h, w, "Position: (%.1f, %.1f, %s)", me->pos[0], me->pos[1], me->mirror ? "positive" : "negative");
-#endif
+	if(show_debug_info)
+	{
+		vglTextOutF(x, y -= dy, h, w, "Ships: %d", world.ships.size());
+		vglTextOutF(x, y -= dy, h, w, "Particle systems: %d", world.particles.size());
+		vglTextOutF(x, y -= dy, h, w, "Entities: %d", world.entities.size());
+		vglTextOutF(x, y -= dy, h, w, "Position: (%.1f, %.1f, %s)", me->pos[0], me->pos[1], me->mirror ? "positive" : "negative");
+	}
 	if(st_stabilizing)
 		vglTextOutF(x, y -= dy, h, w, "Stabilizing");
 	if(st_slow)
@@ -199,34 +215,30 @@ void step()
 	long const t_now = SDL_GetTicks();
 	Float const dt = 0.001 * (t_now - t_base);
 	static Float t_add = 0.0;
+	if(t_add + dt < 0)
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds((int)(-1000 * t_add)));
+		return;
+	}
+
 	t_add += dt;
-	bool const move = t_add > 0;
 	st_slow = t_add > world.dt;
 	t_base = t_now;
-
 	fps_draw.advance(dt);
 
-	if(move)
-	{
-		double t_add_old = t_add;
-		t_add -= world.dt;
-		if(t_add > 0)
-			t_add = 0;
-		fps_model.advance(t_add_old - t_add);
-		world.prepare();
-		world.collide();
-		if(!me->viable())
-			respawn();
-		world.cleanup();
-	}
-
+	double t_add_old = t_add;
+	t_add -= world.dt;
+	if((st_slow = t_add > 0))
+		t_add = 0;
+	fps_model.advance(t_add_old - t_add);
+	world.prepare();
+	world.collide();
+	if(!me->viable())
+		respawn();
+	world.cleanup();
 	draw();
-
-	if(move)
-	{
-		control();
-		world.move();
-	}
+	control();
+	world.move();
 }
 
 bool events()

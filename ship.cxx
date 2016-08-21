@@ -5,6 +5,7 @@
 #include "text.hxx"
 #include "world.hxx"
 
+extern bool show_debug_info;
 unsigned long Ship::last_id = 0;
 
 Ship::Ship(World *world, unsigned long id) :
@@ -94,6 +95,11 @@ void Ship::draw_info()
 
 	glColor4f(1.0, 1.0, 1.0, 0.7);
 	vglTextOutF(-3.0, -6.0, 1.0, 1.0, "HP: %.1f (%.0f %%)", hp, 100.0 * hpp);
+	if(show_debug_info)
+	{
+		vglTextOutF(-3.0, -7.0, 1.0, 1.0, "Pos: (%.1f, %.1f%s)", pos[0], pos[1], mirror ? ", mirrored" : "");
+		vglTextOutF(-3.0, -8.0, 1.0, 1.0, "Vel: (%.1f, %.1f)", vel[0], vel[1]);
+	}
 }
 
 void Ship::draw_model()

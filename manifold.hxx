@@ -39,5 +39,6 @@ public:
 	void relativize(BodyState const &base, PointState &state) const;
 	void relativize(BodyState const &base, BodyState &state) const;
 	void absolutize(BodyState const &base, PointState &state) const;
+	void absolutize(BodyState const &base, BodyState &state) const;
 	Float distance(PointState const &a, PointState const &b) const;
 };

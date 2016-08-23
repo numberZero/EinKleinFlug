@@ -20,8 +20,13 @@ class CMountable:
 	friend class CObject;
 
 protected:
-	std::shared_ptr<CObject> base;
+	std::weak_ptr<CObject> base;
 	SMountPos const *mount;
+	BodyState state;
+
+	CMountable();
+	void step() override;
+	virtual void afterMount();
 
 public:
 };
@@ -32,6 +37,9 @@ class CObject:
 {
 private:
 	std::map<std::shared_ptr<CMountable>, SMountPos> mounted;
+
+protected:
+	CObject(World *world);
 
 public:
 	void mount(std::shared_ptr<CMountable> object, SMountPos const &pos);

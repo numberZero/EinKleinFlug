@@ -3,13 +3,14 @@
 #include "particles/jet.hxx"
 #include "particles/explosion.hxx"
 #include "text.hxx"
+#include "weapon/plasma.hxx"
 #include "world.hxx"
 
 extern bool show_debug_info;
 unsigned long Ship::last_id = 0;
 
 Ship::Ship(World *world, unsigned long id) :
-	Body(world),
+	CObject(world),
 	id(id)
 {
 }
@@ -30,6 +31,8 @@ std::shared_ptr<Ship> Ship::create(World *world, unsigned long id)
 	ship->jets[1].reset(new Jet(*ship, {+2.0, -1.7}, {0.0, +75000.0}));
 	ship->jets[2].reset(new Jet(*ship, {-2.0, +1.7}, {0.0, -75000.0}));
 	ship->jets[3].reset(new Jet(*ship, {+2.0, +1.7}, {0.0, -75000.0}));
+	ship->beams[0] = CPlasmaCannon::create(ship, SMountPos{{-1.2, 1.2}, -0.02}, 300.0, 50.0, 10.0, 2.0);
+	ship->beams[1] = CPlasmaCannon::create(ship, SMountPos{{+1.2, 1.2}, +0.02}, 300.0, 50.0, 10.0, 2.0);
 	return ship;
 }
 

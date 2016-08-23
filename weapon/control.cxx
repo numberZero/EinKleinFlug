@@ -53,12 +53,16 @@ CWeaponController2::CWeaponController2(std::shared_ptr<IContinuousWeaponControl>
 
 void CWeaponController2::step()
 {
-	if(trigger && (autofire || pulse_remains > 0))
+	if(trigger && autofire)
 	{
+		weapon->setState(true);
+		pulse_remains = 0;
+	}
+	else if(pulse_remains > 0)
+	{
+		--pulse_remains;
 		if(!weapon->setState(true))
 			pulse_remains = 0;
-		if(pulse_remains > 0)
-			--pulse_remains;
 	}
 	else
 		weapon->setState(false);

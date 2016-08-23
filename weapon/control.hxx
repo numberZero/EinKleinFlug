@@ -52,8 +52,6 @@ class CWeaponController1:
 {
 private:
 	std::shared_ptr<IPulseWeaponControl> const weapon;
-	bool autofire = false;
-	bool trigger = false;
 	bool fired;
 
 	void onTriggerPush() override;
@@ -71,8 +69,6 @@ class CWeaponController2:
 private:
 	std::shared_ptr<IContinuousWeaponControl> const weapon;
 	unsigned const pulse_frames;
-	bool autofire = false;
-	bool trigger = false;
 	unsigned pulse_remains = 0;
 
 	void onTriggerPush() override;

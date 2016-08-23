@@ -15,7 +15,6 @@ class ParticleEmitter:
 {
 private:
 	std::weak_ptr<ParticleSystem> particle_system;
-	Float energy = 0.0;
 	PRNG generator;
 
 public:
@@ -32,6 +31,7 @@ public:
 
 	Matrix4 colorization;
 	Float power = 0.0; ///< value / second
+	Float energy = 0.0;
 
 	void step() override;
 };

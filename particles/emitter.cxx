@@ -7,17 +7,20 @@
 
 extern World world;
 
+PRNG seeder(std::time(nullptr));
+
 ParticleEmitter::ParticleEmitter(BodyState &base) :
+	generator(seeder()),
 	base(base)
 {
 }
 
 void ParticleEmitter::step()
 {
-	if(power <= 0)
+	if(power <= 0 && energy <= 0)
 		return;
 
-	std::uniform_real_distribution<Float> distr_dt(-0.5 * world.dt, 0.5 * world.dt);
+	std::uniform_real_distribution<Float> distr_dt(0.0 * world.dt, 1.0 * world.dt);
 	std::uniform_real_distribution<Float> distr_angle(-M_PI, M_PI);
 
 	std::uniform_real_distribution<Float> distr_position(0.0, spread_position);

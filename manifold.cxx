@@ -124,6 +124,18 @@ void SquareKleinBottle::absolutize(BodyState const &base, PointState &state) con
 	state.vel = base.vel + rot * state.vel;
 }
 
+void SquareKleinBottle::absolutize(BodyState const &base, BodyState &state) const
+{
+	absolutize(base, (PointState &)state);
+	state.rpos += base.rpos;
+	state.rvel += base.rvel;
+	if(state.mirror != base.mirror)
+	{
+		state.rpos *= -1;
+		state.rvel *= -1;
+	}
+}
+
 Float SquareKleinBottle::distance(PointState const &a, PointState const &b) const
 {
 #ifdef HARD_OPTIMIZE

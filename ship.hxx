@@ -3,10 +3,12 @@
 #include <memory>
 #include <set>
 #include "body.hxx"
+#include "weapon/base.hxx"
+#include "weapon/control.hxx"
 
 class Jet;
 
-struct Ship: Body
+struct Ship: CObject
 {
 private:
 	static unsigned long last_id;
@@ -22,6 +24,7 @@ public:
 	Float hp;
 	Float armor;
 	std::unique_ptr<Jet> jets[4];
+	std::shared_ptr<IWeaponControl> beams[2];
 
 	static std::shared_ptr<Ship> create(World *world);
 	static std::shared_ptr<Ship> create(World *world, unsigned long const id);

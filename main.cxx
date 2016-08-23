@@ -21,7 +21,6 @@ bool show_debug_info = true;
 
 World world(100.0);
 std::shared_ptr<Ship> me;
-std::shared_ptr<Beam> b = nullptr;
 int respawn_count = -1;
 
 static std::ranlux24 gen(std::time(nullptr));
@@ -50,7 +49,6 @@ void respawn()
 	me->radius = 4.0;
 	me->mass = 5000.0;
 	me->rinertia = 5000.0;
-	b.reset(new Beam(*me, {0.0, 3.0}, {0.0, 150.0}, 20.0, 300.0));
 }
 
 void init()
@@ -109,6 +107,7 @@ void control()
 {
 	bool stabilize = keys[SDL_SCANCODE_S];
 	bool shot = keys[SDL_SCANCODE_SPACE];
+	bool autofire = keys[SDL_SCANCODE_LSHIFT];
 	bool up = keys[SDL_SCANCODE_UP];
 	bool down = keys[SDL_SCANCODE_DOWN];
 	bool left = keys[SDL_SCANCODE_LEFT];
@@ -141,7 +140,10 @@ void control()
 	me->jets[1]->setPower(p_right);
 	me->jets[2]->setPower(-p_left);
 	me->jets[3]->setPower(-p_right);
-	b->setShot(shot);
+	me->beams[0]->setAutofireState(autofire);
+	me->beams[1]->setAutofireState(autofire);
+	me->beams[0]->setTriggerState(shot);
+	me->beams[1]->setTriggerState(shot);
 }
 
 void draw()
@@ -194,7 +196,7 @@ void draw()
 	{
 		vglTextOutF(x, y -= dy, h, w, "Ships: %d", world.ships.size());
 		vglTextOutF(x, y -= dy, h, w, "Particle systems: %d", world.particles.size());
-		vglTextOutF(x, y -= dy, h, w, "Entities: %d", world.entities.size());
+		vglTextOutF(x, y -= dy, h, w, "Registered entities: %d", world.entities.size());
 		vglTextOutF(x, y -= dy, h, w, "Position: (%.1f, %.1f, %s)", me->pos[0], me->pos[1], me->mirror ? "positive" : "negative");
 	}
 	if(st_stabilizing)

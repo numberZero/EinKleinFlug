@@ -4,31 +4,30 @@ project(einkleinflug)
 cmake_policy(SET CMP0004 OLD)
 set(CMAKE_CXX_STANDARD 11)
 
-find_package(Eigen3 REQUIRED)
 find_package(GLUT REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(Threads REQUIRED)
 
 add_executable(einkleinflug
-	body.cxx
-	main.cxx
-	manifold.cxx
+	common/main.cxx
+	logic/ship.cxx
 	particles/beam.cxx
 	particles/emitter.cxx
 	particles/explosion.cxx
 	particles/jet.cxx
 	particles/system.cxx
-	ship.cxx
-	text.cxx
-	world.cxx
+	physics/body.cxx
+	physics/manifold.cxx
+	physics/world.cxx
+	visual/text.cxx
 )
 target_compile_definitions(einkleinflug PRIVATE
 	GL_GLEXT_PROTOTYPES
 )
 target_include_directories(einkleinflug PUBLIC
- 	${PROJECT_SOURCE_DIR}/
-	${EIGEN3_INCLUDE_DIR}
+	${PROJECT_SOURCE_DIR}/
+	${PROJECT_SOURCE_DIR}/common/
 	${GLUT_INCLUDE_DIR}
 	${OPENGL_INCLUDE_DIR}
 	${SDL2_INCLUDE_DIRS}

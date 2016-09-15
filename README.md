@@ -10,13 +10,10 @@ Simple flight simulator... with not-so-simple space ;)
 ## Dependencies
  - [CMake](https://cmake.org/)
  - [SDL 2](https://www.libsdl.org/)
- - [Eigen 3](http://eigen.tuxfamily.org/)
  - [FreeGLUT](http://freeglut.sourceforge.net/)
 
 ### Win32
-This program can be cross-compiled to Win32 using MinGW. However,
-as something is buggy, you may need to add `EIGEN_DONT_ALIGN`
-to the compile definitions list.
+This program can be cross-compiled to Win32 using MinGW.
 
 ## Copyright notices
 **EinKleinFlug** - a simple non-orientable-space-flight simulator  

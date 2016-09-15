@@ -1,7 +1,7 @@
 #include "system.hxx"
 #include <GL/gl.h>
 #include <GL/glext.h>
-#include "world.hxx"
+#include "physics/world.hxx"
 
 struct Vertex
 {

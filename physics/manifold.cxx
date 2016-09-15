@@ -1,5 +1,10 @@
 #include "manifold.hxx"
 
+SquareKleinBottle::SquareKleinBottle(Float radius):
+	radius(radius)
+{
+}
+
 bool SquareKleinBottle::shift_x(PointState &state, int dir) const
 {
 	state.pos[0] += 2 * dir * radius;
@@ -89,9 +94,9 @@ Matrix2 SquareKleinBottle::relativizationMatrix(Float rpos, bool mirror) const
 	Float s = std::sin(rpos);
 	Matrix2 rot;
 	if(mirror)
-		rot << -c, s, s, c;
+		rot = {-c, s, s, c};
 	else
-		rot << c, s, -s, c;
+		rot = {c, s, -s, c};
 	return rot;
 }
 
@@ -101,9 +106,9 @@ Matrix2 SquareKleinBottle::absolutizationMatrix(Float rpos, bool mirror) const
 	Float s = std::sin(rpos);
 	Matrix2 rot;
 	if(mirror)
-		rot << -c, s, s, c; // gives correct result
+		rot = {-c, s, s, c}; // gives correct result
 	else
-		rot << c, -s, s, c;
+		rot = {c, -s, s, c};
 	return rot;
 }
 

@@ -2,7 +2,7 @@
 #include <ctime>
 #include <random>
 #include "system.hxx"
-#include "world.hxx"
+#include "physics/world.hxx"
 
 void Explosion::create(World *world, PointState const &base, Float power)
 {
@@ -11,11 +11,12 @@ void Explosion::create(World *world, PointState const &base, Float power)
 	Float base_life = 0.5 * std::log(power + 1.0) + 0.1;
 	Float c = 1.0 / std::pow(base_life, 3);
 	Matrix4 colorization;
-	colorization <<
+	colorization = {
 		0.0, 1.0 * c, 0.0, 0.0,
 		0.0, -1.0 * c, 3.0 * c, 0.0,
 		0.0, -2.0 * c, 4.0 * c, 0.0,
-		0.0, 0.0, 0.0, 1.0;
+		0.0, 0.0, 0.0, 1.0
+	};
 	std::ranlux24 gen(seed);
 	static std::uniform_real_distribution<Float> phi(-M_PI, M_PI);
 	static std::uniform_real_distribution<Float> rad(0.0, 1.0);

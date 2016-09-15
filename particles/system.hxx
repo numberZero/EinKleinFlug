@@ -1,7 +1,7 @@
 #pragma once
 #include <list>
 #include <memory>
-#include "manifold.hxx"
+#include "physics/manifold.hxx"
 
 class World;
 

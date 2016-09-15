@@ -3,7 +3,7 @@
 #include <ctime>
 #include <random>
 #include "system.hxx"
-#include "world.hxx"
+#include "physics/world.hxx"
 
 extern World world;
 

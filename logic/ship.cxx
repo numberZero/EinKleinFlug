@@ -2,12 +2,12 @@
 #include <GL/gl.h>
 #include "particles/jet.hxx"
 #include "particles/explosion.hxx"
-#include "text.hxx"
-#include "world.hxx"
+#include "visual/text.hxx"
+#include "physics/world.hxx"
 
-unsigned long Ship::last_id = 0;
+Id Ship::last_id = 0;
 
-Ship::Ship(World *world, unsigned long id) :
+Ship::Ship(World *world, Id id) :
 	Body(world),
 	id(id)
 {
@@ -18,7 +18,7 @@ std::shared_ptr<Ship> Ship::create(World *world)
 	return create(world, ++last_id);
 }
 
-std::shared_ptr<Ship> Ship::create(World *world, unsigned long id)
+std::shared_ptr<Ship> Ship::create(World *world, Id id)
 {
 	std::shared_ptr<Ship> ship(new Ship(world, id));
 	world->ships.emplace(ship);

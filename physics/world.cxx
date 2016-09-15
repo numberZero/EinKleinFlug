@@ -1,7 +1,7 @@
 #include "world.hxx"
 #include <GL/gl.h>
 #include "particles/system.hxx"
-#include "ship.hxx"
+#include "logic/ship.hxx"
 
 World::World(Float size):
 	manifold{size}

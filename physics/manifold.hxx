@@ -26,6 +26,8 @@ private:
 public:
 	Float const radius;
 
+	SquareKleinBottle(Float radius);
+
 	Matrix2 relativizationMatrix(Float rpos, bool mirror) const;
 	Matrix2 absolutizationMatrix(Float rpos, bool mirror) const;
 

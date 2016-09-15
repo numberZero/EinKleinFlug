@@ -1,5 +1,5 @@
 #pragma once
-#include "manifold.hxx"
+#include "physics/manifold.hxx"
 
 class World;
 

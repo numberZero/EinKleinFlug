@@ -7,9 +7,9 @@
 #include <SDL.h>
 #include "particles/beam.hxx"
 #include "particles/jet.hxx"
-#include "ship.hxx"
-#include "text.hxx"
-#include "world.hxx"
+#include "logic/ship.hxx"
+#include "visual/text.hxx"
+#include "physics/world.hxx"
 
 SDL_Window *window;
 static SDL_GLContext context;

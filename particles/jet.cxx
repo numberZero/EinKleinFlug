@@ -2,8 +2,8 @@
 #include "emitter.hxx"
 #include <ctime>
 #include <random>
-#include "ship.hxx"
-#include "world.hxx"
+#include "logic/ship.hxx"
+#include "physics/world.hxx"
 
 Jet::Jet(Ship &ship, Vector2 shift, Vector2 thrust) :
 	ship(ship),
@@ -25,11 +25,12 @@ Jet::Jet(Ship &ship, Vector2 shift, Vector2 thrust) :
 	ship.world->entities.insert(emitter);
 
 	Float c = 1.0 / (emitter->base_value * std::pow(emitter->base_life, 3));
-	emitter->colorization <<
+	emitter->colorization = {
 		0.0, 0.0, 1.0 * c, 0.0,
 		0.0, 0.0, 2.5 * c, -0.6,
 		0.0, 0.0, 5.0 * c, -2.4,
-		0.0, 0.0, 0.0, 1.0;
+		0.0, 0.0, 0.0, 1.0
+	};
 }
 
 Float Jet::getPower() const

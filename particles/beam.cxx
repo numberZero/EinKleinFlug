@@ -2,8 +2,8 @@
 #include "emitter.hxx"
 #include <ctime>
 #include <random>
-#include "ship.hxx"
-#include "world.hxx"
+#include "logic/ship.hxx"
+#include "physics/world.hxx"
 
 Beam::Beam(Ship &ship, Vector2 shift, Vector2 vel, Float power, Float range) :
 	ship(ship),
@@ -22,11 +22,12 @@ Beam::Beam(Ship &ship, Vector2 shift, Vector2 vel, Float power, Float range) :
 	ship.world->entities.insert(emitter);
 
 	Float c = 1.0 / (emitter->base_value * std::pow(emitter->base_life, 3));
-	emitter->colorization <<
+	emitter->colorization = {
 		0.0, 0.0, 2.5 * c, -1.5,
 		0.0, 0.0, 5.0 * c, -4.0,
 		0.0, 0.0, 3.5 * c, 0.0,
-		0.0, 0.0, 0.0, 1.0;
+		0.0, 0.0, 0.0, 1.0
+	};
 }
 
 bool Beam::doesShot() const

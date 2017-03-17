@@ -25,6 +25,9 @@ add_executable(einkleinflug
 target_compile_definitions(einkleinflug PRIVATE
 	GL_GLEXT_PROTOTYPES
 )
+target_compile_options(einkleinflug PRIVATE
+	-Wall -Wextra
+)
 target_include_directories(einkleinflug PUBLIC
 	${PROJECT_SOURCE_DIR}/
 	${PROJECT_SOURCE_DIR}/common/
@@ -34,7 +37,7 @@ target_include_directories(einkleinflug PUBLIC
 )
 target_link_libraries(einkleinflug
 	${CMAKE_THREAD_LIBS_INIT}
-	${GLUT_LIBRARIES}
+	${GLUT_LIBRARY}
 	${OPENGL_LIBRARIES}
 	${SDL2_LIBRARIES}
 )

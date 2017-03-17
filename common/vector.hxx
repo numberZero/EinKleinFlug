@@ -53,23 +53,26 @@ struct Vector
 	{
 		for(int i = 0; i != N; ++i)
 			data[i] += b.data[i];
+		return *this;
 	}
 
 	Vector &operator-= (Vector const &b)
 	{
 		for(int i = 0; i != N; ++i)
 			data[i] -= b.data[i];
+		return *this;
 	}
 
 	Vector &operator*= (Scalar c)
 	{
 		for(int i = 0; i != N; ++i)
 			data[i] *= c;
+		return *this;
 	}
 
 	Vector &operator/= (Scalar c)
 	{
-		*this *= 1 / c;
+		return *this *= 1 / c;
 	}
 
 	union

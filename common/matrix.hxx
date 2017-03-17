@@ -28,6 +28,7 @@ struct Matrix
 				item[j][i] = *iter;
 				++iter;
 			}
+		return *this;
 	}
 
 	void setZero()
@@ -60,12 +61,14 @@ struct Matrix
 	{
 		for(int k = 0; k != N; ++k)
 			data[k] += b.data[k];
+		return *this;
 	}
 
 	Matrix &operator-= (Matrix const &b)
 	{
 		for(int k = 0; k != N; ++k)
 			data[k] -= b.data[k];
+		return *this;
 	}
 
 	Matrix &operator*= (Matrix const &b)
@@ -77,11 +80,12 @@ struct Matrix
 	{
 		for(int k = 0; k != N; ++k)
 			data[k] *= c;
+		return *this;
 	}
 
 	Matrix &operator/= (Scalar c)
 	{
-		*this *= 1 / c;
+		return *this *= 1 / c;
 	}
 
 	union

@@ -10,6 +10,7 @@
 #include "logic/ship.hxx"
 #include "visual/text.hxx"
 #include "physics/world.hxx"
+#include "menu/menu.hxx"
 
 SDL_Window *window;
 static SDL_GLContext context;
@@ -20,6 +21,8 @@ World world(100.0);
 std::shared_ptr<Ship> me;
 std::shared_ptr<Beam> b = nullptr;
 int respawn_count = -1;
+menu Menu;
+bool menustate = false;
 
 static std::ranlux24 gen(std::time(nullptr));
 static std::uniform_real_distribution<Float> pos(-world.manifold.radius, world.manifold.radius);
@@ -188,6 +191,8 @@ void draw()
 		glColor4f(1.0, 0.0, 0.0, 0.7);
 		vglTextOutF(x, y -= dy, h, w, "Lag");
 	}
+	if(menustate)
+	  Menu.showmenu(x,y,h,w);
 
 	glFlush();
 	glFinish();
@@ -243,6 +248,8 @@ bool events()
 					return false;
 				if(event.key.keysym.scancode == SDL_SCANCODE_X)
 					respawn();
+				if(event.key.keysym.scancode == SDL_SCANCODE_M)
+				  menustate = !menustate;
 				break;
 		}
 	}

@@ -11,6 +11,7 @@
 #include "visual/text.hxx"
 #include "physics/world.hxx"
 #include "menu/menu.hxx"
+#include "mainloop.hxx"
 
 SDL_Window *window;
 static SDL_GLContext context;
@@ -22,7 +23,9 @@ std::shared_ptr<Ship> me;
 std::shared_ptr<Beam> b = nullptr;
 int respawn_count = -1;
 menu Menu;
+
 bool menustate = false;
+Mainloop *mainloop=&Menu;
 
 static std::ranlux24 gen(std::time(nullptr));
 static std::uniform_real_distribution<Float> pos(-world.manifold.radius, world.manifold.radius);
@@ -143,7 +146,11 @@ void control()
 	me->jets[3]->setPower(-p_right);
 	b->setShot(shot);
 }
-
+//if(menustate){
+	
+//}
+class Game : public Mainloop{
+public:
 void draw()
 {
 	static Float const scale = 10.0;
@@ -191,8 +198,7 @@ void draw()
 		glColor4f(1.0, 0.0, 0.0, 0.7);
 		vglTextOutF(x, y -= dy, h, w, "Lag");
 	}
-	if(menustate)
-	  Menu.showmenu(x,y,h,w);
+	
 
 	glFlush();
 	glFinish();
@@ -232,7 +238,8 @@ void step()
 		control();
 		world.move();
 	}
-}
+  }
+};
 
 bool events()
 {
@@ -248,9 +255,11 @@ bool events()
 					return false;
 				if(event.key.keysym.scancode == SDL_SCANCODE_X)
 					respawn();
-				if(event.key.keysym.scancode == SDL_SCANCODE_M)
-				  menustate = !menustate;
+				//if(event.key.keysym.scancode == SDL_SCANCODE_M&&menustate==false)
+				  //mainloop = &Menu;
+				
 				break;
+			
 		}
 	}
 	return true;
@@ -259,7 +268,7 @@ bool events()
 void run()
 {
 	while(events())
-		step();
+		mainloop->step();
 }
 
 void initSDL()

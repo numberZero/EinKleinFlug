@@ -2,7 +2,8 @@
 #include "GL/gl.h"
 #include "GL/glut.h"
 #include "visual/text.hxx"
-struct  menu{
-public:
-  void showmenu(float x, float y, float w, float h);
+#include "common/mainloop.hxx"
+class menu : public Mainloop{
+	void step() override;
+	void draw() override;
 };

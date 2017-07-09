@@ -21,6 +21,7 @@ add_executable(einkleinflug
 	physics/manifold.cxx
 	physics/world.cxx
 	visual/text.cxx
+	menu/menu.cxx
 )
 target_compile_definitions(einkleinflug PRIVATE
 	GL_GLEXT_PROTOTYPES

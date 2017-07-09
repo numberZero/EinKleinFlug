@@ -22,10 +22,15 @@ World world(100.0);
 std::shared_ptr<Ship> me;
 std::shared_ptr<Beam> b = nullptr;
 int respawn_count = -1;
-menu Menu;
-
-bool menustate = false;
-Mainloop *mainloop=&Menu;
+Menu menu;
+class Game : public Mainloop{
+public:
+	void draw();
+	void step();
+};
+Game game;
+bool menustate = true;
+Mainloop *mainloop=&menu;
 
 static std::ranlux24 gen(std::time(nullptr));
 static std::uniform_real_distribution<Float> pos(-world.manifold.radius, world.manifold.radius);
@@ -149,9 +154,8 @@ void control()
 //if(menustate){
 	
 //}
-class Game : public Mainloop{
-public:
-void draw()
+
+void Game::draw()
 {
 	static Float const scale = 10.0;
 
@@ -205,7 +209,7 @@ void draw()
 	SDL_GL_SwapWindow(window);
 }
 
-void step()
+void Game :: step()
 {
 	long const t_now = SDL_GetTicks();
 	Float const dt = 0.001 * (t_now - t_base);
@@ -231,7 +235,7 @@ void step()
 		world.cleanup();
 	}
 
-	draw();
+	Game::draw();
 
 	if(move)
 	{
@@ -239,7 +243,7 @@ void step()
 		world.move();
 	}
   }
-};
+
 
 bool events()
 {
@@ -255,8 +259,14 @@ bool events()
 					return false;
 				if(event.key.keysym.scancode == SDL_SCANCODE_X)
 					respawn();
-				//if(event.key.keysym.scancode == SDL_SCANCODE_M&&menustate==false)
-				  //mainloop = &Menu;
+				if(event.key.keysym.scancode == SDL_SCANCODE_M){
+					if(mainloop == &game)
+						mainloop = &menu;
+					else mainloop = &game;
+				
+				}
+				
+				
 				
 				break;
 			

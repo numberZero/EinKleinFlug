@@ -17,11 +17,12 @@ SDL_Window *window;
 static SDL_GLContext context;
 static long t_base;
 std::uint8_t const *keys;
-
 World world(100.0);
 std::shared_ptr<Ship> me;
 std::shared_ptr<Beam> b = nullptr;
 int respawn_count = -1;
+bool mouseover = false;
+extern button btn1;
 Menu menu;
 class Game : public Mainloop{
 public:
@@ -261,11 +262,15 @@ bool events()
 					respawn();
 				if(event.key.keysym.scancode == SDL_SCANCODE_M){
 					if(mainloop == &game)
-						mainloop = &menu;
-					else mainloop = &game;
-				
+						mainloop = &menu;			
 				}
-				
+			case SDL_MOUSEMOTION:
+				if(event.motion.x>btn1.x+400&&event.motion.y>300-btn1.y&&event.motion.x<btn1.right+400&&event.motion.y<300-btn1.bottom)
+				{mouseover = true; btn1.textwidth=5;}
+				else {mouseover = false; btn1.textwidth=2;}
+			case SDL_MOUSEBUTTONDOWN:
+				if(mouseover && event.button.button == SDL_BUTTON_LEFT)
+				mainloop = &game;
 				
 				
 				break;

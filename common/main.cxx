@@ -134,6 +134,57 @@ void resize()
 	glMatrixMode(GL_MODELVIEW);
 }
 
+<<<<<<< HEAD
+=======
+void Game :: step()
+{
+	long const t_now = SDL_GetTicks();
+	Float const dt = 0.001 * (t_now - t_base);
+	static Float t_add = 0.0;
+	t_add += dt;
+	bool const move = t_add > 0;
+	st_slow = t_add > world.dt;
+	t_base = t_now;
+
+	fps_draw.advance(dt);
+
+	if(move)
+	{
+		double t_add_old = t_add;
+		t_add -= world.dt;
+		if(t_add > 0)
+			t_add = 0;
+		fps_model.advance(t_add_old - t_add);
+		world.prepare();
+		world.collide();
+		if(!me->viable())
+			respawn();
+		world.cleanup();
+	}
+
+	Game::draw();
+
+	if(move)
+	{
+		control();
+		world.move();
+	}
+  }
+
+void resize()
+{
+	int window_width, window_height;
+	SDL_GL_GetDrawableSize(window, &window_width, &window_height);
+	glViewport(0, 0, window_width, window_height);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	double viewport_half_width = std::max(400.0, 300.0 * window_width / window_height);
+	double viewport_half_height = std::max(300.0, 400.0 * window_height / window_width);
+	glOrtho(-viewport_half_width, viewport_half_width, -viewport_half_height, viewport_half_height, -100.0, 100.0);
+	glMatrixMode(GL_MODELVIEW);
+}
+
+>>>>>>> 1b0275e77fd9ddb6e77e34b4dc849e49b9470722
 bool events()
 {
 	SDL_Event event;

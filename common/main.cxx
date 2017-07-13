@@ -121,6 +121,18 @@ void control()
 	b->setShot(shot);
 }
 
+void resize()
+{
+	int window_width, window_height;
+	SDL_GL_GetDrawableSize(window, &window_width, &window_height);
+	glViewport(0, 0, window_width, window_height);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	double viewport_half_width = std::max(400.0, 300.0 * window_width / window_height);
+	double viewport_half_height = std::max(300.0, 400.0 * window_height / window_width);
+	glOrtho(-viewport_half_width, viewport_half_width, -viewport_half_height, viewport_half_height, -100.0, 100.0);
+	glMatrixMode(GL_MODELVIEW);
+}
 
 bool events()
 {
@@ -148,15 +160,24 @@ bool events()
 
 void run()
 {
-	while(events())
+	while(events()) {
+		resize();
 		mainloop->step();
+	}
 }
 
 void initSDL()
 {
 	SDL_Init(SDL_INIT_EVERYTHING);
 	keys = SDL_GetKeyboardState(nullptr);
-	window = SDL_CreateWindow("Ein Klein Flug", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_OPENGL);
+	window = SDL_CreateWindow(
+		"Ein Klein Flug",
+		SDL_WINDOWPOS_UNDEFINED,
+		SDL_WINDOWPOS_UNDEFINED,
+		800,
+		600,
+		SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
+		);
 	context = SDL_GL_CreateContext(window);
 	SDL_GL_MakeCurrent(window, context);
 	SDL_GL_SetSwapInterval(-1);

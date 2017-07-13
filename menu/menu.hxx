@@ -3,12 +3,10 @@
 #include "GL/glut.h"
 #include "visual/text.hxx"
 #include "common/mainloop.hxx"
-#include "SDL2/SDL.h"
-extern bool mouseover;
-class Menu : public Mainloop{
-	void step() override;
-	void draw() override;
-};
+#include <SDL.h>
+#include "vector"
+#include "game/game.hxx"
+
 
 class button{
 public:
@@ -19,13 +17,13 @@ public:
 	 
 	const char* text;
 	double textwidth;
-	double bottom;
-	double right;
+	bool isinside(double posx, double posy);
+	void ifinside(bool t);
 	
 	void drawbutton(){
 	glLoadIdentity();
-	bottom = y - height;
-	right = x + width;
+	double bottom = y - height;
+	double right = x + width;
 	vglTextOutF(x+100,bottom+25, height-10, textwidth,text);
 	glColor4f(1.0,0.5,0.0,1.0);
 	glBegin(GL_LINE_LOOP);
@@ -48,4 +46,10 @@ public:
 	
 }
 };
-
+class Menu : public Mainloop{
+public:
+	std::vector <button> vector;
+	Menu(std::vector<button> vector){this->vector=vector;};
+	void step() override;
+	void draw() override;
+};

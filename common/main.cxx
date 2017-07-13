@@ -12,25 +12,21 @@
 #include "physics/world.hxx"
 #include "menu/menu.hxx"
 #include "mainloop.hxx"
-
-SDL_Window *window;
+#include "game/game.hxx"
+#include "fpscounter.hxx"
 static SDL_GLContext context;
-static long t_base;
 std::uint8_t const *keys;
-World world(100.0);
-std::shared_ptr<Ship> me;
-std::shared_ptr<Beam> b = nullptr;
-int respawn_count = -1;
-bool mouseover = false;
+extern World world;
 extern button btn1;
-Menu menu;
-class Game : public Mainloop{
-public:
-	void draw();
-	void step();
-};
-Game game;
-bool menustate = true;
+extern button btn2;
+extern button btn3;
+extern SDL_Window *window;
+extern Game *game;
+extern int *respawn_count;
+extern std::shared_ptr<Ship> me;
+extern std::shared_ptr<Beam> b;
+std::vector <button> vector {btn1,btn2,btn3};
+Menu menu(vector);
 Mainloop *mainloop=&menu;
 
 static std::ranlux24 gen(std::time(nullptr));
@@ -43,7 +39,7 @@ void respawn()
 {
 	Float a = phi(gen);
 	Float v = vel(gen);
-	++respawn_count;
+	*respawn_count++;
 	me = Ship::create(&world);
 #ifdef HERO
 	me->max_hp = 20.0;
@@ -81,38 +77,10 @@ void init()
 	}
 }
 
-class FPSCounter
-{
-	long frames = 0;
-	Float time = 0.0;
-	Float rate = 0.0;
 
-public:
-	void advance(Float dt);
-	Float value() const;
-};
 
-void FPSCounter::advance(Float dt)
-{
-	++frames;
-	time += dt;
-	if(time >= 1.0)
-	{
-		rate = frames / time;
-		frames = 0;
-		time = 0;
-	}
-}
 
-Float FPSCounter::value() const
-{
-	return rate;
-}
 
-static FPSCounter fps_draw;
-static FPSCounter fps_model;
-static bool st_slow = false;
-static bool st_stabilizing = false;
 
 void control()
 {
@@ -152,98 +120,6 @@ void control()
 	me->jets[3]->setPower(-p_right);
 	b->setShot(shot);
 }
-//if(menustate){
-	
-//}
-
-void Game::draw()
-{
-	static Float const scale = 10.0;
-
-	glClearColor(0.0, 0.0, 0.0, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	glLoadIdentity();
-	glScalef(scale, scale, scale);
-	glTranslated(0, -10.0, 0.0);
-	world.draw(me);
-// mark “me”
-	glLineWidth(5.0);
-	glColor4f(0.0, 1.0, 0.0, 0.3);
-	glRotated(-180.0 / M_PI * me->rpos, 0.0, 0.0, 1.0);
-	glBegin(GL_LINES);
-	for(long k = 0; k != 32; ++k)
-	{
-		Float r = 1.3 * me->radius;
-		Float phi = M_PI / 16.0 * k;
-		glVertex2d(r * std::cos(phi), r * std::sin(phi));
-	}
-	glEnd();
-
-	glLoadIdentity();
-	Float x = -390.0;
-	Float y = 300.0;
-	Float dy = 20.0;
-	Float w = 1.0;
-	Float h = 14.0;
-	glColor4f(0.0, 1.0, 0.0, 0.7);
-	vglTextOutF(x, y -= dy, h, w, "FPS: %.1f / %.1f", fps_draw.value(), fps_model.value());
-	vglTextOutF(x, y -= dy, h, w, "Respawns: %d", respawn_count);
-	vglTextOutF(x, y -= dy, h, w, "Ships: %d", world.ships.size());
-	vglTextOutF(x, y -= dy, h, w, "Particle systems: %d", world.particles.size());
-	vglTextOutF(x, y -= dy, h, w, "Entities: %d", world.entities.size());
-	glColor4f(1.0, 1.0, 0.0, 0.7);
-#ifndef NDEBUG
-	vglTextOutF(x, y -= dy, h, w, "Position: (%.1f, %.1f, %s)", me->pos[0], me->pos[1], me->mirror ? "positive" : "negative");
-#endif
-	if(st_stabilizing)
-		vglTextOutF(x, y -= dy, h, w, "Stabilizing");
-	if(st_slow)
-	{
-		glColor4f(1.0, 0.0, 0.0, 0.7);
-		vglTextOutF(x, y -= dy, h, w, "Lag");
-	}
-	
-
-	glFlush();
-	glFinish();
-	SDL_GL_SwapWindow(window);
-}
-
-void Game :: step()
-{
-	long const t_now = SDL_GetTicks();
-	Float const dt = 0.001 * (t_now - t_base);
-	static Float t_add = 0.0;
-	t_add += dt;
-	bool const move = t_add > 0;
-	st_slow = t_add > world.dt;
-	t_base = t_now;
-
-	fps_draw.advance(dt);
-
-	if(move)
-	{
-		double t_add_old = t_add;
-		t_add -= world.dt;
-		if(t_add > 0)
-			t_add = 0;
-		fps_model.advance(t_add_old - t_add);
-		world.prepare();
-		world.collide();
-		if(!me->viable())
-			respawn();
-		world.cleanup();
-	}
-
-	Game::draw();
-
-	if(move)
-	{
-		control();
-		world.move();
-	}
-  }
 
 
 bool events()
@@ -261,20 +137,10 @@ bool events()
 				if(event.key.keysym.scancode == SDL_SCANCODE_X)
 					respawn();
 				if(event.key.keysym.scancode == SDL_SCANCODE_M){
-					if(mainloop == &game)
-						mainloop = &menu;			
+					if(mainloop == game)
+					mainloop = &menu;			
 				}
-			case SDL_MOUSEMOTION:
-				if(event.motion.x>btn1.x+400&&event.motion.y>300-btn1.y&&event.motion.x<btn1.right+400&&event.motion.y<300-btn1.bottom)
-				{mouseover = true; btn1.textwidth=5;}
-				else {mouseover = false; btn1.textwidth=2;}
-			case SDL_MOUSEBUTTONDOWN:
-				if(mouseover && event.button.button == SDL_BUTTON_LEFT)
-				mainloop = &game;
-				
-				
-				break;
-			
+				break;	
 		}
 	}
 	return true;
@@ -321,7 +187,6 @@ int main(int argc, char **argv)
 	glutInit(&argc, argv);
 	initSDL();
 	initGL();
-	init();
 	run();
 	SDL_Quit();
 	return 0;

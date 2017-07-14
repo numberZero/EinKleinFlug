@@ -1,13 +1,19 @@
 #include "game.hxx"
 #include "physics/world.hxx"
+#include <cmath>
+#include <random>
+#include "logic/ship.hxx"
 extern void respawn();
 extern void control();
 SDL_Window *window;
-World world(100.0);
-
+extern World world;
+long t_base;
+bool st_slow = false;
+bool st_stabilizing = false;
 int respawn_count = -1;
 std::shared_ptr<Ship> me;
-std::shared_ptr<Beam> b;
+std::shared_ptr<Beam> b = nullptr;
+
 
 void FPSCounter::advance(Float dt)
 {

@@ -3,7 +3,6 @@
 #include <memory>
 #include <set>
 #include "physics/body.hxx"
-#include "types.hxx"
 
 class Jet;
 

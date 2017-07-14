@@ -1,6 +1,6 @@
 #pragma once
 #include <memory>
-#include "types.hxx"
+#include "common/types.hxx"
 
 class ParticleEmitter;
 class Ship;

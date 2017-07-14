@@ -1,6 +1,6 @@
 #include <ctime>
 #include <iostream>
-#include <list>
+#include "vector"
 #include <random>
 #include <GL/gl.h>
 #include <GL/glut.h>
@@ -16,15 +16,18 @@
 #include "fpscounter.hxx"
 static SDL_GLContext context;
 std::uint8_t const *keys;
-extern World world;
+World world(100.0);
 extern button btn1;
 extern button btn2;
 extern button btn3;
 extern SDL_Window *window;
-extern Game *game;
-extern int *respawn_count;
+extern Game game;
+extern int respawn_count;
 extern std::shared_ptr<Ship> me;
 extern std::shared_ptr<Beam> b;
+extern long t_base;
+extern bool st_stabilizing;
+extern bool st_slow;
 std::vector <button> vector {btn1,btn2,btn3};
 Menu menu(vector);
 Mainloop *mainloop=&menu;
@@ -39,9 +42,9 @@ void respawn()
 {
 	Float a = phi(gen);
 	Float v = vel(gen);
-	*respawn_count++;
+	respawn_count++;
 	me = Ship::create(&world);
-#ifdef HERO
+#ifndef HERO
 	me->max_hp = 20.0;
 	me->hp = 20.0;
 	me->armor = 20.0;
@@ -61,7 +64,8 @@ void respawn()
 void init()
 {
 	respawn();
-	for(int k = 0; k != 24; ++k)
+	
+	for(unsigned int k = 0; k != 24; ++k)
 	{
 		std::shared_ptr<Ship> obj(Ship::create(&world));
 		Float a = phi(gen);
@@ -151,7 +155,7 @@ bool events()
 				if(event.key.keysym.scancode == SDL_SCANCODE_X)
 					respawn();
 				if(event.key.keysym.scancode == SDL_SCANCODE_M){
-					if(mainloop == game)
+					if(mainloop == &game)
 					mainloop = &menu;			
 				}
 				break;	
@@ -210,6 +214,7 @@ int main(int argc, char **argv)
 	glutInit(&argc, argv);
 	initSDL();
 	initGL();
+	init();
 	run();
 	SDL_Quit();
 	return 0;

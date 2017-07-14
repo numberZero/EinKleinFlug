@@ -9,9 +9,7 @@
 #include "physics/world.hxx"
 #include "common/fpscounter.hxx"
 #include "particles/beam.hxx"
-static long t_base;
-static bool st_slow = false;
-static bool st_stabilizing = false;
+
 class Game : public Mainloop{
 public:
 	void draw() override;

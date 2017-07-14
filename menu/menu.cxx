@@ -6,6 +6,9 @@ extern Mainloop *mainloop;
 extern SDL_Window *window;
 Game game;
 extern void init();
+extern bool st_slow;
+extern bool st_stabilizing;
+extern long t_base;
 
 button btn1{-200,200,400,100,"PLAY",2};
 button btn2{-200,50,400,100,"HELP",2};
@@ -38,11 +41,10 @@ static bool t;
 glClearColor(0.0, 0.0, 0.0, 1.0);
 glClear(GL_COLOR_BUFFER_BIT);
 glLoadIdentity();
-int i = 0;
 if(SDL_PollEvent(&event)){
 	switch(event.type){
 		case SDL_MOUSEMOTION:
-				for(int i = 0; i<vector.size(); i++){
+				for(unsigned int i = 0; i<vector.size(); i++){
 				if(i == 0){
 				t = vector[0].isinside(event.motion.x,event.motion.y);}
 				if (vector[i].isinside(event.motion.x, event.motion.y))
@@ -52,16 +54,12 @@ if(SDL_PollEvent(&event)){
 				
 		case SDL_MOUSEBUTTONUP:
 			if(t&&event.button.button == SDL_BUTTON_LEFT){
-				init();
 			mainloop = &game;
 			}
 			break;}
 		
 }
-if(t){
-	vglTextOutF(0,0,10,1,"mouseoversth");
-}
-for(int i = 0; i<vector.size(); i++){
+for(unsigned int i = 0; i<vector.size(); i++){
 	
 	vector[i].drawbutton();
 }

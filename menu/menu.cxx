@@ -64,8 +64,8 @@ for(unsigned int i = 0; i<vector.size(); i++){
 	vector[i].drawbutton();
 }
 
-//glFlush();
-//glFinish();
+glFlush();
+glFinish();
 SDL_GL_SwapWindow(window);
 
 //drawbutton(-200,-100,400,100,5,"QUIT");

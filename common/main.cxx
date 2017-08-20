@@ -81,11 +81,6 @@ void init()
 	}
 }
 
-
-
-
-
-
 void control()
 {
 	bool stabilize = keys[SDL_SCANCODE_S];

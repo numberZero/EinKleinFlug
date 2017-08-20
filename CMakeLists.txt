@@ -11,7 +11,9 @@ find_package(Threads REQUIRED)
 
 add_executable(einkleinflug
 	common/main.cxx
+	game/game.cxx
 	logic/ship.cxx
+	menu/menu.cxx
 	particles/beam.cxx
 	particles/emitter.cxx
 	particles/explosion.cxx
@@ -21,7 +23,6 @@ add_executable(einkleinflug
 	physics/manifold.cxx
 	physics/world.cxx
 	visual/text.cxx
-	menu/menu.cxx
 )
 target_compile_definitions(einkleinflug PRIVATE
 	GL_GLEXT_PROTOTYPES

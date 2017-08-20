@@ -171,6 +171,9 @@ void initSDL()
 {
 	SDL_Init(SDL_INIT_EVERYTHING);
 	keys = SDL_GetKeyboardState(nullptr);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 	window = SDL_CreateWindow(
 		"Ein Klein Flug",
 		SDL_WINDOWPOS_UNDEFINED,
@@ -190,9 +193,7 @@ void initGL()
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH);
 	
-	glEnable(GL_POLYGON_SMOOTH);
-	glEnable(GL_LINE_SMOOTH);
-	glEnable(GL_POINT_SMOOTH);
+	glEnable(GL_MULTISAMPLE);
 	glLineWidth(1.5);
 	
 	glEnable(GL_BLEND);

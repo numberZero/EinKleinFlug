@@ -30,33 +30,36 @@ void button::ifinside(bool t){
 	else textwidth = 2;
 }
 void Menu::step(){
-Menu::draw();
+	Menu::draw();
 }
 
 void Menu::draw(){
-SDL_Event event;
+	SDL_Event event;
 
-static bool t;
+	static bool t;
 
-glClearColor(0.0, 0.0, 0.0, 1.0);
-glClear(GL_COLOR_BUFFER_BIT);
-glLoadIdentity();
-if(SDL_PollEvent(&event)){
-	switch(event.type){
-		case SDL_MOUSEMOTION:
+	glClearColor(0.0, 0.0, 0.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glLoadIdentity();
+	if(SDL_PollEvent(&event)){
+		switch(event.type){
+			case SDL_MOUSEMOTION:
 				for(unsigned int i = 0; i<vector.size(); i++){
 				if(i == 0){
-				t = vector[0].isinside(event.motion.x,event.motion.y);}
+				t = true; }
 				if (vector[i].isinside(event.motion.x, event.motion.y))
 					vector[i].textwidth = 5;
 				else vector[i].textwidth = 2;}
-				
-				
-		case SDL_MOUSEBUTTONUP:
-			if(t&&event.button.button == SDL_BUTTON_LEFT){
-			mainloop = &game;
-			}
-			break;}
+					
+					
+			case SDL_MOUSEBUTTONUP:
+				if(vector[0].isinside(event.button.x,event.button.y) && event.button.button == SDL_BUTTON_LEFT){
+					mainloop = &game;
+					}
+				if(vector[2].isinside(event.button.x,event.button.y) && event.button.button == SDL_BUTTON_LEFT){
+					exit(0);
+					}
+				break;}
 		
 }
 for(unsigned int i = 0; i<vector.size(); i++){

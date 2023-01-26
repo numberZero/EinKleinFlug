@@ -4,7 +4,7 @@ project(einkleinflug)
 cmake_policy(SET CMP0004 OLD)
 set(CMAKE_CXX_STANDARD 11)
 
-find_package(GLUT REQUIRED)
+find_package(FreeGLUT REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(Threads REQUIRED)
@@ -31,13 +31,12 @@ target_compile_options(einkleinflug PRIVATE
 target_include_directories(einkleinflug PUBLIC
 	${PROJECT_SOURCE_DIR}/
 	${PROJECT_SOURCE_DIR}/common/
-	${GLUT_INCLUDE_DIR}
 	${OPENGL_INCLUDE_DIR}
 	${SDL2_INCLUDE_DIRS}
 )
 target_link_libraries(einkleinflug
 	${CMAKE_THREAD_LIBS_INIT}
-	${GLUT_LIBRARY}
+	FreeGLUT::freeglut
 	${OPENGL_LIBRARIES}
 	${SDL2_LIBRARIES}
 )

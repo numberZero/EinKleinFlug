@@ -1,5 +1,6 @@
 # EinKleinFlug
 Simple flight simulator... with not-so-simple space ;)
+![A screenshot](screenshot.png)
 
 ## Controls
  - Move: arrows

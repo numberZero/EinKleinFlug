@@ -141,6 +141,8 @@ void control()
 	b->setShot(shot);
 }
 
+static Float w = 400.0, h = 300.0;
+
 void draw()
 {
 	static Float const scale = 10.0;
@@ -166,8 +168,8 @@ void draw()
 	glEnd();
 
 	glLoadIdentity();
-	Float x = -390.0;
-	Float y = 300.0;
+	Float x = -w + 10.0;
+	Float y = h;
 	Float dy = 20.0;
 	Float w = 1.0;
 	Float h = 14.0;
@@ -229,6 +231,23 @@ void step()
 	}
 }
 
+void resize(int width, int height)
+{
+	glViewport(0, 0, width, height);
+
+	float scale = 500.0;
+	float d = sqrt(width * width + height * height);
+	float u = width / d;
+	float v = height / d;
+	w = scale * u;
+	h = scale * v;
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(-w, w, -h, h, -10, 100);
+	glMatrixMode(GL_MODELVIEW);
+}
+
 bool events()
 {
 	SDL_Event event;
@@ -244,6 +263,12 @@ bool events()
 				if(event.key.keysym.scancode == SDL_SCANCODE_X)
 					respawn();
 				break;
+			case SDL_WINDOWEVENT:
+				switch (event.window.event) {
+					case SDL_WINDOWEVENT_SIZE_CHANGED:
+						resize(event.window.data1, event.window.data2);
+						break;
+				}
 		}
 	}
 	return true;
@@ -259,7 +284,7 @@ void initSDL()
 {
 	SDL_Init(SDL_INIT_EVERYTHING);
 	keys = SDL_GetKeyboardState(nullptr);
-	window = SDL_CreateWindow("Ein Klein Flug", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_OPENGL);
+	window = SDL_CreateWindow("Ein Klein Flug", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 	context = SDL_GL_CreateContext(window);
 	SDL_GL_MakeCurrent(window, context);
 	SDL_GL_SetSwapInterval(-1);

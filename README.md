@@ -2,6 +2,8 @@
 Simple flight simulator... with not-so-simple space ;)
 ![A screenshot](screenshot.png)
 
+The space is a Klein bottle. It is non-orientable, i.e. there is no global notion of left vs right, or clockwise vs. counterclockwise. For example, the right wing is always red, and while if you fly by particular paths you may find a ship whose *left* wing looks red, from its perspective it’s its *right* wing. That’s somewhat similar to looking in a mirror.
+
 ## Controls
  - Move: arrows
  - Shot: space
